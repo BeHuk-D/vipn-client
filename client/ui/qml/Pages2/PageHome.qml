@@ -129,7 +129,7 @@ PageType {
             Layout.fillWidth: true
             Layout.fillHeight: true
             Layout.topMargin: 8
-            Layout.bottomMargin: 16
+            Layout.bottomMargin: 8
 
             ConnectButton {
                 id: connectButton
@@ -139,6 +139,26 @@ PageType {
                 width: Math.min(implicitWidth, parent.width, parent.height)
                 height: width
             }
+        }
+
+        ButtonType {
+            Layout.alignment: Qt.AlignHCenter
+            Layout.bottomMargin: 12
+
+            visible: root.hasSubscription
+
+            variant: ButtonType.Text
+            size: ButtonType.Medium
+
+            enabled: !PingController.isPinging
+
+            text: PingController.isPinging
+                  ? qsTr("Measuring…")
+                  : (PingController.pingMs >= 0
+                     ? qsTr("Ping %1 ms").arg(PingController.pingMs)
+                     : qsTr("Check ping"))
+
+            onClicked: root.measurePing()
         }
 
         SubscriptionCard {
@@ -159,36 +179,6 @@ PageType {
             onReplaceRequested: root.openReplace()
         }
 
-        RowLayout {
-            Layout.fillWidth: true
-            Layout.topMargin: 10
-
-            spacing: 8
-
-            visible: root.hasSubscription
-
-            SmallTextType {
-                Layout.fillWidth: true
-
-                text: PingController.isPinging
-                      ? qsTr("Measuring latency…")
-                      : (PingController.pingMs >= 0
-                         ? qsTr("Latency: %1 ms").arg(PingController.pingMs)
-                         : qsTr("Latency not measured"))
-                color: AmneziaStyle.color.textTertiary
-            }
-
-            ButtonType {
-                variant: ButtonType.Text
-                size: ButtonType.Medium
-
-                enabled: !PingController.isPinging
-
-                text: PingController.isPinging ? qsTr("Measuring") : qsTr("Check")
-
-                onClicked: root.measurePing()
-            }
-        }
     }
 
     Connections {
