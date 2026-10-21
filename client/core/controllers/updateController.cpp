@@ -5,8 +5,10 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QNetworkReply>
+#include <QNetworkRequest>
 #include <QTimer>
 #include <QUrl>
+#include <QVector>
 
 #include "amneziaApplication.h"
 #include "logger.h"
@@ -36,6 +38,43 @@ namespace
     const QLatin1String kInstallerRemoteFileNamePattern(APPLICATION_NAME "_%1_linux_x64.run");
     const QString kInstallerLocalPath = QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/" APPLICATION_NAME ".run";
 #endif
+
+#if defined(Q_OS_WINDOWS)
+    constexpr auto kInstallerSuffix = "_windows_x64.exe";
+#elif defined(Q_OS_MACOS) && !defined(MACOS_NE)
+    constexpr auto kInstallerSuffix = "_macos_x64.pkg";
+#elif defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID)
+    constexpr auto kInstallerSuffix = "_linux_x64.run";
+#else
+    constexpr auto kInstallerSuffix = "";
+#endif
+
+    QVector<int> versionParts(QString value)
+    {
+        if (value.startsWith(QLatin1Char('v'))) {
+            value.remove(0, 1);
+        }
+        QVector<int> parts;
+        for (const QString &part : value.split(QLatin1Char('.'))) {
+            parts.append(part.toInt());
+        }
+        return parts;
+    }
+
+    bool isNewerVersion(const QString &candidate, const QString &current)
+    {
+        const QVector<int> candidateParts = versionParts(candidate);
+        const QVector<int> currentParts = versionParts(current);
+        const int size = qMax(candidateParts.size(), currentParts.size());
+        for (int index = 0; index < size; ++index) {
+            const int left = index < candidateParts.size() ? candidateParts.at(index) : 0;
+            const int right = index < currentParts.size() ? currentParts.at(index) : 0;
+            if (left != right) {
+                return left > right;
+            }
+        }
+        return false;
+    }
 
     QStringList stringListFromJsonValue(const QJsonValue &value)
     {
@@ -135,7 +174,16 @@ void UpdateController::checkForUpdates()
     return;
 #endif
 
-    if (m_updateCheckRunning || !m_appSettingsRepository) {
+    if (m_updateCheckRunning) {
+        return;
+    }
+
+    if (!QString(CLIENT_UPDATE_GITHUB_REPO).isEmpty()) {
+        checkGitHubUpdates();
+        return;
+    }
+
+    if (!m_appSettingsRepository) {
         return;
     }
     setUpdateCheckRunning(true);
@@ -194,6 +242,74 @@ void UpdateController::checkForUpdates()
     });
 }
 
+void UpdateController::checkGitHubUpdates()
+{
+    setUpdateCheckRunning(true);
+
+    const QString repo = QString::fromLatin1(CLIENT_UPDATE_GITHUB_REPO);
+    QNetworkRequest request(QUrl(QStringLiteral("https://api.github.com/repos/%1/releases/latest").arg(repo)));
+    request.setTransferTimeout(15000);
+    request.setRawHeader("Accept", "application/vnd.github+json");
+    request.setRawHeader("User-Agent", APPLICATION_NAME);
+
+    QNetworkReply *reply = amnApp->networkManager()->get(request);
+
+    connect(reply, &QNetworkReply::finished, this, [this, reply, repo]() {
+        reply->deleteLater();
+        setUpdateCheckRunning(false);
+
+        if (reply->error() != QNetworkReply::NoError) {
+            logger.error() << "GitHub release request failed:" << static_cast<int>(reply->error())
+                           << reply->errorString();
+            emit updateCheckFailed();
+            return;
+        }
+
+        const QJsonObject release = QJsonDocument::fromJson(reply->readAll()).object();
+        const QString tag = release.value(QStringLiteral("tag_name")).toString();
+        if (tag.isEmpty()) {
+            logger.error() << "GitHub release has no tag";
+            emit updateCheckFailed();
+            return;
+        }
+
+        const QString version = tag.startsWith(QLatin1Char('v')) ? tag.mid(1) : tag;
+        if (!isNewerVersion(version, QStringLiteral(APP_VERSION))) {
+            logger.info() << "No application update available, latest release is" << version;
+            emit updateNotFound();
+            return;
+        }
+
+        m_version = version;
+        m_releaseDate = release.value(QStringLiteral("published_at")).toString().left(10);
+        m_description = release.value(QStringLiteral("body")).toString();
+        m_tags.clear();
+        m_newFeatures.clear();
+        m_improvements.clear();
+        m_bugFixes.clear();
+        m_releasePageUrl = release.value(QStringLiteral("html_url")).toString();
+        m_downloadUrl.clear();
+        m_downloadBaseUrl = QStringLiteral("https://github.com/%1/releases/download/%2").arg(repo, tag);
+
+        if (kInstallerSuffix[0] != '\0') {
+            const QJsonArray assets = release.value(QStringLiteral("assets")).toArray();
+            for (const QJsonValue &value : assets) {
+                const QJsonObject asset = value.toObject();
+                const QString name = asset.value(QStringLiteral("name")).toString();
+                if (!name.endsWith(QString::fromLatin1(kInstallerSuffix))) {
+                    continue;
+                }
+                m_downloadUrl = asset.value(QStringLiteral("browser_download_url")).toString();
+                break;
+            }
+        }
+
+        logger.info() << "Application update available:" << version;
+        setUpdateState(UpdateState::State::Idle);
+        emit updateFound();
+    });
+}
+
 void UpdateController::openStorePage() const
 {
 #if defined(Q_OS_IOS)
@@ -246,7 +362,7 @@ void UpdateController::downloadInstaller()
         return;
     }
 
-    const QString downloadUrl = composeDownloadUrl();
+    const QString downloadUrl = m_downloadUrl.isEmpty() ? composeDownloadUrl() : m_downloadUrl;
     if (downloadUrl.isEmpty()) {
         logger.error() << "Download URL is empty";
         setUpdateState(UpdateState::State::DownloadError);

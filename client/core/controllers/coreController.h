@@ -20,6 +20,7 @@
 #include "core/controllers/selfhosted/exportController.h"
 #include "ui/controllers/qml/focusController.h"
 #include "ui/controllers/importUiController.h"
+#include "ui/controllers/pingController.h"
 #include "core/controllers/selfhosted/importController.h"
 #include "ui/controllers/selfhosted/installUiController.h"
 #include "ui/controllers/qml/pageController.h"
@@ -175,6 +176,7 @@ private:
     InstallUiController* m_installUiController;
     ImportUiController* m_importController;
     ImportController* m_importCoreController;
+    PingController* m_pingController;
     ExportUiController* m_exportUiController;
     SettingsUiController* m_settingsUiController;
     LocalProxyUiController* m_localProxyUiController;

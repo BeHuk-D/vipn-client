@@ -1,91 +1,78 @@
 # ViPN
 
-ViPN — VPN-клиент для собственного (self-hosted) сервера, основанный на открытом
-клиенте [Amnezia](https://github.com/amnezia-vpn/amnezia-client) (GPL-3.0).
-Проект переименован в ViPN, получил собственную иконку и обновлённую тёмную
-палитру с золотым акцентом.
+Клиент коммерческого VPN по подписке. Форк [Amnezia](https://github.com/amnezia-vpn/amnezia-client)
+(GPL-3.0), переделанный под один сценарий: пользователь вставляет ссылку подписки и подключается.
 
 ## Возможности
 
-- OpenVPN, WireGuard, IKEv2.
-- Протоколы с маскировкой трафика: AmneziaWG, Xray/REALITY, OpenVPN over Cloak,
-  OpenVPN over Shadowsocks.
-- Автоматическая установка VPN-контейнеров на ваш сервер по SSH.
-- Split tunneling (включая выбор приложений на Android и desktop).
-- Linux, Windows и Android.
+- Подключение по ссылке вида `https://<panel>/s/<token>` — клиент сам скачивает
+  конфиг AmneziaWG, показывает сервер, страну и срок действия.
+- Обновление подписки из приложения и замена ссылки.
+- Проверка задержки до сервера (через туннель — до шлюза, без VPN — до панели).
+- Монохромный интерфейс, русский и английский языки.
+- Настройки соединения: DNS и KillSwitch.
+- Автообновление из GitHub Releases этого репозитория.
+
+Поддерживаемые платформы сборки: Linux, Windows. Android и macOS собираются
+инфраструктурой upstream, но в этом форке не тестировались.
 
 ## Сборка
 
-Требования: CMake 3.25+, Qt 6.10.x, Python 3, Conan 2.28, компилятор C++17/20.
-Для Android дополнительно нужны Android SDK/NDK и Qt для Android.
+Требования: CMake 3.25+, Qt 6.10.1, Python 3, Conan 2.28, компилятор C++17/20.
 
 ```bash
 git submodule update --init --recursive
 python3 -m venv .venv
 .venv/bin/pip install "conan==2.28.0"
 
-# Linux (бинарники + IFW-установщик)
+# Linux: бинарники + установщик IFW
 QT_INSTALL_DIR="$HOME/Qt" deploy/build.sh --generator Ninja --installer all
-
-# Если в системе GCC новее 15 (Conan 2.28 его ещё не знает), укажите GCC 15:
-CC=gcc-15 CXX=g++-15 QT_INSTALL_DIR="$HOME/Qt" \
-  deploy/build.sh --generator Ninja --installer all
 
 # Windows (из cmd, при установленном Qt/MSVC)
 deploy\build.bat --installer all
-
-# Android APK/AAB
-QT_INSTALL_DIR="$HOME/Qt" deploy/build.sh -t android --aab
 ```
 
-Точные версии Qt и набор модулей совпадают с upstream CI: Qt 6.10.1,
-`qtremoteobjects qt5compat qtshadertools qthttpserver qtwebsockets`.
-Для Android можно использовать Qt 6.10.3, как в upstream.
-
-Готовые артефакты:
+Артефакты:
 
 - Linux: `deploy/build/ViPN_<version>_linux_x64.run`
-- Windows: `deploy/build/ViPN_<version>_windows_x64.exe` / `.msi`
-- Android: `deploy/build/client/android-build/build/outputs/apk/...`
+- Windows: `deploy/build/ViPN_<version>_windows_x64.exe` и `.msi`
+
+Версию можно задать переменной `AMNEZIAVPN_VERSION` (по умолчанию `1.0.0.0`).
+
+## Релизы и автообновление
+
+Релиз создаётся тегом:
+
+```bash
+git tag v1.2.0
+git push origin v1.2.0
+```
+
+Workflow `.github/workflows/release.yml` собирает Linux и Windows сборки с этой
+версией и прикладывает установщики к GitHub Release. Клиент при запуске
+запрашивает `https://api.github.com/repos/BeHuk-D/vipn-client/releases/latest`,
+сравнивает версию с собственной и предлагает скачать и установить обновление.
+
+Репозиторий обновлений задаётся в `client/cmake/branding/common.cmake`
+(`CLIENT_UPDATE_GITHUB_REPO`), включение автообновления — `CLIENT_ENABLE_APP_UPDATES`.
 
 ## Брендинг
 
-Все основные настройки вынесены в CMake:
+- `client/cmake/branding/common.cmake` — имя приложения, служба, организация QSettings,
+  префикс переводов, ссылки, репозиторий обновлений.
+- `client/ui/qml/Modules/Style/AmneziaStyle.qml` — монохромная палитра.
+- `client/images/vipnLogo.png` — иконка 512×512, из неё собраны `icon.png`,
+  `app.ico`, `app.icns` и Linux PNG в `deploy/data/linux/`.
+- `deploy/data/linux/` — `.desktop`, systemd-юнит и PNG установщика.
 
-- `client/cmake/branding/common.cmake` — имя приложения, имя сервиса,
-  организация QSettings, префикс переводов, ссылки на сайт/поддержку.
-- `client/cmake/branding/android.cmake` — `applicationId` (`org.vipn.vpn`).
-- `client/ui/qml/Modules/Style/AmneziaStyle.qml` — палитра интерфейса
-  (графит `#333333`, золотой акцент `#F8DC3C`).
-- `client/images/vipnLogo.png` — исходная иконка 512×512. Из неё собраны
-  `app.ico`, `app.icns`, `icon.png`, Linux PNG и все Android mipmap-ресурсы.
-- `deploy/data/linux/` — `.desktop`, systemd-юнит и PNG для Linux.
-- `deploy/data/windows/` и `deploy/installer/` — скрипты и WIX/IFW-установщик.
+## Совместимость
 
-Ссылки на сайт, документацию, поддержку и репозиторий по умолчанию пустые и
-скрыты в интерфейсе. Задайте их через `CLIENT_BRAND_*` при конфигурации CMake,
-например:
-
-```bash
-cmake -S . -B build \
-  -DCLIENT_BRAND_WEBSITE_URL="https://example.org" \
-  -DCLIENT_BRAND_SUPPORT_EMAIL="support@example.org"
-```
-
-Встроенные обновления отключены (`CLIENT_ENABLE_APP_UPDATES=0`): upstream-фид
-предлагает и скачивает сборки Amnezia. Включайте их только после настройки
-собственного сервера обновлений.
-
-### Совместимость
-
-Имена протоколов и серверных контейнеров (`AmneziaWG`, `AmneziaDNS`,
-образы `amneziavpn/*`, пути `/opt/amnezia/*`) сохранены без изменений, чтобы
-клиент продолжал работать с существующей серверной инфраструктурой Amnezia.
-Низкоуровневые идентификаторы Windows-драйверов (`AmneziaWGTunnel$AmneziaVPN`,
-`AmneziaVPNSplitTunnel`, именованный канал WireGuard) также оставлены как в
-upstream, поскольку они связаны с преднастроенными драйверами.
+Серверная часть — AmneziaWG на собственном сервере, панель выдаёт обычный `.conf`
+с заголовками `ViPN-Expires-At`, `ViPN-Country` и `ViPN-Subscription-Url`.
+Протоколы и серверные контейнеры Amnezia не затронуты.
 
 ## Лицензия
 
 GPL-3.0. Проект является форком Amnezia Client; исходный код и лицензия
-сохранены в репозитории.
+сохранены в репозитории. При распространении сборок исходники должны быть
+доступны.

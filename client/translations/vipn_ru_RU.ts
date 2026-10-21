@@ -767,6 +767,26 @@ Already installed containers were found on the server. All installed containers 
         <source>Settings</source>
         <translation>Настройки</translation>
     </message>
+    <message>
+        <source>Measuring latency…</source>
+        <translation>Измеряем задержку…</translation>
+    </message>
+    <message>
+        <source>Latency: %1 ms</source>
+        <translation>Задержка: %1 мс</translation>
+    </message>
+    <message>
+        <source>Latency not measured</source>
+        <translation>Задержка не измерена</translation>
+    </message>
+    <message>
+        <source>Measuring</source>
+        <translation>Измеряем</translation>
+    </message>
+    <message>
+        <source>Check</source>
+        <translation>Проверить</translation>
+    </message>
 </context>
 <context>
     <name>PageProtocolAwgClientSettings</name>

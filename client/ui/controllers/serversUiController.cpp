@@ -197,6 +197,12 @@ QString ServersUiController::getDefaultServerHost() const
     return serverHostName(getDefaultServerId());
 }
 
+QString ServersUiController::getDefaultServerDns() const
+{
+    const auto config = m_serversController->nativeConfig(getDefaultServerId());
+    return config ? config->dns1 : QString();
+}
+
 QString ServersUiController::getDefaultServerCountryCode() const
 {
     const auto config = m_serversController->nativeConfig(getDefaultServerId());

@@ -85,9 +85,10 @@ if(NOT CLIENT_NOTIFICATION_IDENTIFIER)
     set(CLIENT_NOTIFICATION_IDENTIFIER "${CLIENT_TS_PREFIX}" CACHE STRING "Local notification request identifier")
 endif()
 
-# ViPN has no update backend of its own. Pointing the client at the upstream
-# Amnezia feed would offer and install Amnezia builds, so keep this disabled
-# until a ViPN update service is configured.
+if(NOT DEFINED CLIENT_UPDATE_GITHUB_REPO)
+    set(CLIENT_UPDATE_GITHUB_REPO "BeHuk-D/vipn-client")
+endif()
+
 if(NOT DEFINED CLIENT_ENABLE_APP_UPDATES)
-    set(CLIENT_ENABLE_APP_UPDATES 0)
+    set(CLIENT_ENABLE_APP_UPDATES 1)
 endif()

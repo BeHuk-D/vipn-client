@@ -42,6 +42,14 @@ PageType {
                                              ServersUiController.defaultServerSubscriptionUrl)
     }
 
+    function measurePing() {
+        if (ConnectionController.isConnected) {
+            PingController.ping(ServersUiController.defaultServerDns, 53)
+        } else {
+            PingController.ping(ServersUiController.defaultServerHost, 443)
+        }
+    }
+
     function openReplace() {
         if (ConnectionController.isConnected) {
             PageController.showNotificationMessage(qsTr("Disconnect before replacing the subscription"))
@@ -55,6 +63,7 @@ PageType {
             PageController.goToPageHome()
             return
         }
+        Qt.callLater(root.measurePing)
         if (!root.autoRefreshDone && root.subscriptionUrl !== "" && !ConnectionController.isConnected) {
             root.autoRefreshDone = true
             Qt.callLater(function() { root.refreshSubscription(false) })
@@ -148,6 +157,47 @@ PageType {
 
             onRefreshRequested: root.refreshSubscription(true)
             onReplaceRequested: root.openReplace()
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            Layout.topMargin: 10
+
+            spacing: 8
+
+            visible: root.hasSubscription
+
+            SmallTextType {
+                Layout.fillWidth: true
+
+                text: PingController.isPinging
+                      ? qsTr("Measuring latency…")
+                      : (PingController.pingMs >= 0
+                         ? qsTr("Latency: %1 ms").arg(PingController.pingMs)
+                         : qsTr("Latency not measured"))
+                color: AmneziaStyle.color.textTertiary
+            }
+
+            ButtonType {
+                variant: ButtonType.Text
+                size: ButtonType.Medium
+
+                enabled: !PingController.isPinging
+
+                text: PingController.isPinging ? qsTr("Measuring") : qsTr("Check")
+
+                onClicked: root.measurePing()
+            }
+        }
+    }
+
+    Connections {
+        target: ConnectionController
+
+        function onConnectionStateChanged() {
+            if (root.hasSubscription) {
+                Qt.callLater(root.measurePing)
+            }
         }
     }
 }

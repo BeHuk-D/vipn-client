@@ -57,6 +57,7 @@ signals:
 private:
     void setUpdateState(UpdateState::State state);
     void setUpdateCheckRunning(bool running);
+    void checkGitHubUpdates();
     void downloadInstaller();
     QString composeDownloadUrl() const;
     void openStorePage() const;
@@ -71,6 +72,7 @@ private:
     QStringList m_improvements;
     QStringList m_bugFixes;
     QString m_downloadBaseUrl;
+    QString m_downloadUrl;
     QString m_releasePageUrl;
 
     UpdateState::State m_updateState = UpdateState::State::Idle;

@@ -30,6 +30,7 @@ class ServersUiController : public QObject
     Q_PROPERTY(bool defaultServerHasOutdatedAwgContainer READ defaultServerHasOutdatedAwgContainer NOTIFY defaultServerIdChanged)
 
     Q_PROPERTY(QString defaultServerHost READ getDefaultServerHost NOTIFY defaultServerIdChanged)
+    Q_PROPERTY(QString defaultServerDns READ getDefaultServerDns NOTIFY defaultServerIdChanged)
     Q_PROPERTY(QString defaultServerCountryCode READ getDefaultServerCountryCode NOTIFY defaultServerIdChanged)
     Q_PROPERTY(QString defaultServerCountryName READ getDefaultServerCountryName NOTIFY defaultServerIdChanged)
     Q_PROPERTY(QString defaultServerSubscriptionExpiresAt READ getDefaultServerSubscriptionExpiresAt NOTIFY defaultServerIdChanged)
@@ -73,6 +74,7 @@ public slots:
     QString getDefaultServerId() const;
     QString getDefaultServerName() const;
     QString getDefaultServerHost() const;
+    QString getDefaultServerDns() const;
     QString getDefaultServerCountryCode() const;
     QString getDefaultServerCountryName() const;
     QString getDefaultServerSubscriptionExpiresAt() const;

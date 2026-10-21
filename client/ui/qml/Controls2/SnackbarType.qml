@@ -17,7 +17,9 @@ Popup {
     property string actionText
     property bool closable: false
     property int duration: 4000
+    property bool fromTop: false
     property real bottomOffset: PageController.safeAreaBottomMargin
+    property real topOffset: PageController.safeAreaTopMargin
 
     signal actionTriggered()
 
@@ -38,7 +40,9 @@ Popup {
 
     width: Math.min(parent.width - 32, 520)
     x: Math.round((parent.width - width) / 2)
-    y: parent.height - height - 16 - root.bottomOffset - PageController.imeHeight
+    y: root.fromTop
+       ? 16 + root.topOffset
+       : parent.height - height - 16 - root.bottomOffset - PageController.imeHeight
 
     leftPadding: 16
     rightPadding: actionButton.visible ? 8 : 16
@@ -146,7 +150,9 @@ Popup {
 
             onActiveTranslationChanged: {
                 swipe.offsetX = swipeHandler.activeTranslation.x
-                swipe.offsetY = Math.max(0, swipeHandler.activeTranslation.y)
+                swipe.offsetY = root.fromTop
+                                ? Math.min(0, swipeHandler.activeTranslation.y)
+                                : Math.max(0, swipeHandler.activeTranslation.y)
             }
 
             onActiveChanged: {
@@ -154,7 +160,8 @@ Popup {
                     hideTimer.stop()
                     return
                 }
-                if (Math.abs(swipe.offsetX) > 60 || swipe.offsetY > 40) {
+                const verticalDismiss = root.fromTop ? -swipe.offsetY > 40 : swipe.offsetY > 40
+                if (Math.abs(swipe.offsetX) > 60 || verticalDismiss) {
                     root.close()
                     return
                 }

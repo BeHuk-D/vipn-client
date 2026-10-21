@@ -98,8 +98,10 @@ if exist "%VCVARS_PATH%" (
 :: build project and installers
 set "_tests_arg="
 if defined AMNEZIA_BUILD_TESTS set "_tests_arg=-DAMNEZIA_BUILD_TESTS=%AMNEZIA_BUILD_TESTS%"
+set "_version_arg="
+if defined AMNEZIAVPN_VERSION set "_version_arg=-DAMNEZIAVPN_VERSION=%AMNEZIAVPN_VERSION%"
 @echo on
-cmake -S "%PROJECT_DIR%" -B "%BUILD_DIR%" -DCMAKE_BUILD_TYPE=Release "-DCMAKE_PREFIX_PATH=%QT_ROOT_PATH%\msvc2022_%_qt_postfix_arg%" "-DCMAKE_VS_GLOBALS=UseMultiToolTask=true;EnforceProcessCountAcrossBuilds=true" %_tests_arg% || goto :fail
+cmake -S "%PROJECT_DIR%" -B "%BUILD_DIR%" -DCMAKE_BUILD_TYPE=Release "-DCMAKE_PREFIX_PATH=%QT_ROOT_PATH%\msvc2022_%_qt_postfix_arg%" "-DCMAKE_VS_GLOBALS=UseMultiToolTask=true;EnforceProcessCountAcrossBuilds=true" %_tests_arg% %_version_arg% || goto :fail
 cmake --build "%BUILD_DIR%" --config Release -- /m  || goto :fail
 @echo off
 for %%I in (%ARG_BUILD_INSTALLERS%) do (

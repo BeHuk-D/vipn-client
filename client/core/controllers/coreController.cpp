@@ -204,6 +204,9 @@ void CoreController::initControllers()
     m_importController = new ImportUiController(m_importCoreController, this);
     setQmlContextProperty("ImportController", m_importController);
 
+    m_pingController = new PingController(this);
+    setQmlContextProperty("PingController", m_pingController);
+
     m_exportUiController = new ExportUiController(m_exportController, this);
     setQmlContextProperty("ExportController", m_exportUiController);
 

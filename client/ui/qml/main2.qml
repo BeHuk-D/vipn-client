@@ -145,7 +145,7 @@ Window  {
         id: popupNotificationMessage
         objectName: "popupNotificationMessage"
 
-        bottomOffset: Math.max(PageController.safeAreaBottomMargin, pageStart.tabBarHeight - 4)
+        fromTop: true
 
         duration: 3000
     }
@@ -154,7 +154,7 @@ Window  {
         id: popupErrorMessage
         objectName: "popupErrorMessage"
 
-        bottomOffset: Math.max(PageController.safeAreaBottomMargin, pageStart.tabBarHeight - 4)
+        fromTop: true
 
         variant: SnackbarType.Destructive
         closable: true
