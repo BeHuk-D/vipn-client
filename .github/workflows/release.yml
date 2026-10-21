@@ -183,7 +183,7 @@ jobs:
           mkdir -p dist/android
           for apk in deploy/build/client/android-build/build/outputs/apk/oss/release/*.apk; do
             [ -f "$apk" ] || continue
-            abi=$(basename "$apk" | sed -E 's/.*-([a-z0-9_]+)-release\.apk$/\1/')
+            abi=$(basename "$apk" | sed -E 's/.*-oss-(.*)-release\.apk$/\1/')
             cp "$apk" "dist/android/ViPN_${AMNEZIAVPN_VERSION}_android_${abi}.apk"
           done
       - uses: actions/upload-artifact@v4
