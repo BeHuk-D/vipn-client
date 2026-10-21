@@ -118,4 +118,6 @@ jobs:
             --repo "$GITHUB_REPOSITORY" \
             --title "ViPN ${{ needs.version.outputs.value }}" \
             --notes "ViPN ${{ needs.version.outputs.value }}" \
-            dist/**/ViPN_*
+            dist/linux-installer/*.run \
+            dist/windows-installer/*.exe \
+            dist/windows-installer/*.msi
