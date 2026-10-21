@@ -56,21 +56,6 @@ Workflow `.github/workflows/release.yml` собирает Linux и Windows сб�
 Репозиторий обновлений задаётся в `client/cmake/branding/common.cmake`
 (`CLIENT_UPDATE_GITHUB_REPO`), включение автообновления — `CLIENT_ENABLE_APP_UPDATES`.
 
-## Брендинг
-
-- `client/cmake/branding/common.cmake` — имя приложения, служба, организация QSettings,
-  префикс переводов, ссылки, репозиторий обновлений.
-- `client/ui/qml/Modules/Style/AmneziaStyle.qml` — монохромная палитра.
-- `client/images/vipnLogo.png` — иконка 512×512, из неё собраны `icon.png`,
-  `app.ico`, `app.icns` и Linux PNG в `deploy/data/linux/`.
-- `deploy/data/linux/` — `.desktop`, systemd-юнит и PNG установщика.
-
-## Совместимость
-
-Серверная часть — AmneziaWG на собственном сервере, панель выдаёт обычный `.conf`
-с заголовками `ViPN-Expires-At`, `ViPN-Country` и `ViPN-Subscription-Url`.
-Протоколы и серверные контейнеры Amnezia не затронуты.
-
 ## Лицензия
 
 GPL-3.0. Проект является форком Amnezia Client; исходный код и лицензия
