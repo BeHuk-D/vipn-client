@@ -177,10 +177,15 @@ jobs:
           deploy/build.sh -t android \
             --abi arm64-v8a --abi armeabi-v7a --abi x86_64
       - name: Collect APKs
+        env:
+          AMNEZIAVPN_VERSION: ${{ needs.version.outputs.value }}
         run: |
           mkdir -p dist/android
-          cp deploy/build/client/android-build/build/outputs/apk/oss/release/*.apk dist/android/ || true
-          cp deploy/build/client/android-build/build/outputs/apk/*.apk dist/android/ || true
+          for apk in deploy/build/client/android-build/build/outputs/apk/oss/release/*.apk; do
+            [ -f "$apk" ] || continue
+            abi=$(basename "$apk" | sed -E 's/.*-([a-z0-9_]+)-release\.apk$/\1/')
+            cp "$apk" "dist/android/ViPN_${AMNEZIAVPN_VERSION}_android_${abi}.apk"
+          done
       - uses: actions/upload-artifact@v4
         with:
           name: android-apk
