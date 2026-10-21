@@ -214,6 +214,27 @@ PageType {
 
         filled: true
 
+        RowLayout {
+            Layout.fillWidth: true
+
+            visible: !UpdateController.isStoreUpdate && UpdateController.updateState === UpdateState.Downloading
+
+            spacing: 10
+
+            ProgressBarType {
+                Layout.fillWidth: true
+
+                from: 0
+                to: 100
+                value: UpdateController.downloadProgress * 100
+            }
+
+            SmallTextType {
+                text: Math.round(UpdateController.downloadProgress * 100) + "%"
+                color: AmneziaStyle.color.textSecondary
+            }
+        }
+
         ButtonType {
             id: updateButton
 

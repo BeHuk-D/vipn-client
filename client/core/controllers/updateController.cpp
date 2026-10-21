@@ -159,6 +159,11 @@ bool UpdateController::isUpdateCheckRunning() const
     return m_updateCheckRunning;
 }
 
+double UpdateController::getDownloadProgress() const
+{
+    return m_downloadProgress;
+}
+
 void UpdateController::setUpdateCheckRunning(bool running)
 {
     if (m_updateCheckRunning == running) {
@@ -369,6 +374,8 @@ void UpdateController::downloadInstaller()
         return;
     }
 
+    m_downloadProgress = 0.0;
+    emit downloadProgressChanged();
     setUpdateState(UpdateState::State::Downloading);
 
     QNetworkRequest request;
@@ -377,6 +384,14 @@ void UpdateController::downloadInstaller()
 
     QNetworkReply *reply = amnApp->networkManager()->get(request);
     m_downloadReply = reply;
+
+    QObject::connect(reply, &QNetworkReply::downloadProgress, this, [this, reply](qint64 received, qint64 total) {
+        if (m_downloadReply != reply || total <= 0) {
+            return;
+        }
+        m_downloadProgress = static_cast<double>(received) / static_cast<double>(total);
+        emit downloadProgressChanged();
+    });
 
     QObject::connect(reply, &QNetworkReply::finished, this, [this, reply]() {
         reply->deleteLater();
@@ -390,6 +405,8 @@ void UpdateController::downloadInstaller()
             logger.error() << "Installer download failed, network error:" << static_cast<int>(reply->error())
                            << reply->errorString();
             logger.error() << "HTTP status:" << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+            m_downloadProgress = 0.0;
+            emit downloadProgressChanged();
             setUpdateState(UpdateState::State::DownloadError);
             return;
         }
@@ -411,6 +428,8 @@ void UpdateController::downloadInstaller()
         }
 
         file.close();
+        m_downloadProgress = 1.0;
+        emit downloadProgressChanged();
         setUpdateState(UpdateState::State::ReadyToInstall);
     });
 #endif
@@ -426,6 +445,9 @@ void UpdateController::cancelDownload()
     m_downloadReply = nullptr;
     reply->abort();
     reply->deleteLater();
+
+    m_downloadProgress = 0.0;
+    emit downloadProgressChanged();
 
     logger.info() << "Installer download cancelled";
     setUpdateState(UpdateState::State::Idle);

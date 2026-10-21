@@ -43,6 +43,7 @@ public:
     UpdateState::State getUpdateState() const;
     bool isStoreUpdate() const;
     bool isUpdateCheckRunning() const;
+    double getDownloadProgress() const;
 
 public slots:
     void checkForUpdates();
@@ -56,6 +57,7 @@ signals:
     void updateCheckFailed();
     void updateStateChanged();
     void updateCheckRunningChanged();
+    void downloadProgressChanged();
 
 private:
     void setUpdateState(UpdateState::State state);
@@ -77,6 +79,7 @@ private:
     QString m_downloadBaseUrl;
     QString m_downloadUrl;
     QNetworkReply *m_downloadReply = nullptr;
+    double m_downloadProgress = 0.0;
     QString m_releasePageUrl;
 
     UpdateState::State m_updateState = UpdateState::State::Idle;
