@@ -59,7 +59,7 @@ PageType {
         id: fl
 
         anchors.top: navigationBar.bottom
-        anchors.bottom: bottomBar.top
+        anchors.bottom: vpnRow.visible ? vpnRow.top : bottomBar.top
         contentHeight: content.implicitHeight + 16 + 32
 
         ColumnLayout {
@@ -79,55 +79,21 @@ PageType {
                 Layout.fillWidth: true
                 spacing: 12
 
-                Item {
+                Rectangle {
                     id: imageBlock
 
                     Layout.fillWidth: true
                     Layout.preferredHeight: 98
 
-                    layer.enabled: true
-                    layer.effect: MultiEffect {
-                        maskEnabled: true
-                        maskSource: imageBlockMask
-                        maskThresholdMin: 0.5
-                        maskSpreadAtMin: 1.0
-                    }
+                    radius: 16
+                    color: AmneziaStyle.color.bgSurfaceAlt
+                    border.width: 1
+                    border.color: AmneziaStyle.color.borderSoft
 
-                    Image {
-                        id: heroImage
-
-                        x: -imageBlock.width * 0.3827
-                        y: -imageBlock.height * 2.4255
-                        width: imageBlock.width * 1.8771
-                        height: imageBlock.height * 5.8577
-
-                        source: "qrc:/images/update/updateHeroDark.jpg"
-                        fillMode: Image.Stretch
-                    }
-
-                    Rectangle {
-                        id: imageBlockMask
-
-                        anchors.fill: parent
-                        radius: 16
-                        visible: false
-                        layer.enabled: true
-                    }
-
-                    BackdropBlurType {
+                    DisplayTextType {
                         anchors.centerIn: parent
-                        width: versionText.implicitWidth + 26
-                        height: 55
 
-                        sourceItem: heroImage
-
-                        DisplayTextType {
-                            id: versionText
-
-                            anchors.centerIn: parent
-
-                            text: "v. " + UpdateController.version
-                        }
+                        text: "v. " + UpdateController.version
                     }
                 }
 
@@ -204,6 +170,41 @@ PageType {
         }
     }
 
+    RowLayout {
+        id: vpnRow
+
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: bottomBar.top
+        anchors.leftMargin: 16
+        anchors.rightMargin: 16
+        anchors.bottomMargin: 8
+
+        spacing: 8
+
+        visible: !UpdateController.isStoreUpdate
+                 && !ConnectionController.isConnected
+                 && ServersUiController.getServersCount() > 0
+
+        SmallTextType {
+            Layout.fillWidth: true
+
+            text: qsTr("Without VPN the update may not download")
+            color: AmneziaStyle.color.textTertiary
+        }
+
+        ButtonType {
+            variant: ButtonType.Secondary
+            size: ButtonType.Medium
+
+            enabled: !ConnectionController.isConnectionInProgress
+
+            text: qsTr("Turn on VPN")
+
+            onClicked: ConnectionController.openConnection()
+        }
+    }
+
     BottomBarType {
         id: bottomBar
 
@@ -254,6 +255,18 @@ PageType {
                     break
                 }
             }
+        }
+
+        ButtonType {
+            Layout.fillWidth: true
+
+            visible: !UpdateController.isStoreUpdate && UpdateController.updateState === UpdateState.Downloading
+
+            variant: ButtonType.Secondary
+
+            text: qsTr("Cancel download")
+
+            onClicked: UpdateController.cancel()
         }
     }
 

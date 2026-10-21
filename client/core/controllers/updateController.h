@@ -7,6 +7,8 @@
 
 #include "core/repositories/secureAppSettingsRepository.h"
 
+class QNetworkReply;
+
 namespace UpdateState
 {
     Q_NAMESPACE
@@ -46,6 +48,7 @@ public slots:
     void checkForUpdates();
     void startUpdate();
     void installUpdate();
+    void cancelDownload();
 
 signals:
     void updateFound();
@@ -73,6 +76,7 @@ private:
     QStringList m_bugFixes;
     QString m_downloadBaseUrl;
     QString m_downloadUrl;
+    QNetworkReply *m_downloadReply = nullptr;
     QString m_releasePageUrl;
 
     UpdateState::State m_updateState = UpdateState::State::Idle;

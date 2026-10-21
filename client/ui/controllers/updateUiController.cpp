@@ -104,3 +104,10 @@ void UpdateUiController::retry()
         m_updateController->startUpdate();
     }
 }
+
+void UpdateUiController::cancel()
+{
+    if (m_updateController) {
+        m_updateController->cancelDownload();
+    }
+}

@@ -5265,6 +5265,14 @@ Create one from the current settings.</source>
         <translation>Исправлено</translation>
     </message>
     <message>
+        <source>Without VPN the update may not download</source>
+        <translation>Без VPN обновление может не скачаться</translation>
+    </message>
+    <message>
+        <source>Turn on VPN</source>
+        <translation>Включить VPN</translation>
+    </message>
+    <message>
         <source>Update app</source>
         <translation>Обновить приложение</translation>
     </message>
@@ -5279,6 +5287,10 @@ Create one from the current settings.</source>
     <message>
         <source>Retry</source>
         <translation>Повторить</translation>
+    </message>
+    <message>
+        <source>Cancel download</source>
+        <translation>Отменить загрузку</translation>
     </message>
 </context>
 <context>

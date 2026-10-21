@@ -39,6 +39,7 @@ public slots:
     void update();
     void install();
     void retry();
+    void cancel();
 
 signals:
     void updateFound();

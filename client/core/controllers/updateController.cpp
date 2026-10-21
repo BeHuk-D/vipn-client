@@ -376,9 +376,15 @@ void UpdateController::downloadInstaller()
     request.setUrl(QUrl(downloadUrl));
 
     QNetworkReply *reply = amnApp->networkManager()->get(request);
+    m_downloadReply = reply;
 
     QObject::connect(reply, &QNetworkReply::finished, this, [this, reply]() {
         reply->deleteLater();
+
+        if (m_downloadReply != reply) {
+            return;
+        }
+        m_downloadReply = nullptr;
 
         if (reply->error() != QNetworkReply::NoError) {
             logger.error() << "Installer download failed, network error:" << static_cast<int>(reply->error())
@@ -408,6 +414,21 @@ void UpdateController::downloadInstaller()
         setUpdateState(UpdateState::State::ReadyToInstall);
     });
 #endif
+}
+
+void UpdateController::cancelDownload()
+{
+    if (!m_downloadReply) {
+        return;
+    }
+
+    QNetworkReply *reply = m_downloadReply;
+    m_downloadReply = nullptr;
+    reply->abort();
+    reply->deleteLater();
+
+    logger.info() << "Installer download cancelled";
+    setUpdateState(UpdateState::State::Idle);
 }
 
 void UpdateController::installUpdate()
