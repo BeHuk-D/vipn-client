@@ -10,7 +10,6 @@ import "../Controls2/TextTypes"
 Rectangle {
     id: root
 
-    property string serverName
     property string countryCode
     property string countryName
     property string expiresAtText
@@ -52,37 +51,26 @@ Rectangle {
 
         RowLayout {
             Layout.fillWidth: true
+            Layout.alignment: Qt.AlignHCenter
 
             spacing: 8
 
-            BodyTextType {
-                Layout.fillWidth: true
+            visible: root.countryName !== ""
 
-                text: root.serverName
-                color: AmneziaStyle.color.textPrimary
-                font.weight: 500
-                elide: Text.ElideRight
-                wrapMode: Text.NoWrap
+            Image {
+                width: 20
+                height: 15
+                fillMode: Image.PreserveAspectFit
+                source: root.countryCode !== ""
+                        ? "qrc:/countriesFlags/images/flagKit/" + root.countryCode + ".svg"
+                        : ""
+                visible: root.countryCode !== ""
             }
 
-            RowLayout {
-                spacing: 6
-
-                visible: root.countryName !== ""
-
-                Image {
-                    width: 20
-                    height: 15
-                    fillMode: Image.PreserveAspectFit
-                    source: root.countryCode !== ""
-                            ? "qrc:/countriesFlags/images/flagKit/" + root.countryCode + ".svg"
-                            : ""
-                }
-
-                SmallTextType {
-                    text: root.countryName
-                    color: AmneziaStyle.color.textSecondary
-                }
+            BodyTextType {
+                text: root.countryName
+                color: AmneziaStyle.color.textPrimary
+                wrapMode: Text.NoWrap
             }
         }
 

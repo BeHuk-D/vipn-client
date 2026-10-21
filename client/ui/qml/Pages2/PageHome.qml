@@ -166,7 +166,6 @@ PageType {
 
             visible: root.hasSubscription
 
-            serverName: ServersUiController.defaultServerName
             countryCode: ServersUiController.defaultServerCountryCode
             countryName: ServersUiController.defaultServerCountryName
             expiresAtText: root.formatExpiry(root.expiresAt)

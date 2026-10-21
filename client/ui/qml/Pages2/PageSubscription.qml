@@ -95,7 +95,6 @@ PageType {
                     Layout.leftMargin: 16
                     Layout.rightMargin: 16
 
-                    serverName: ServersUiController.defaultServerName
                     countryCode: ServersUiController.defaultServerCountryCode
                     countryName: ServersUiController.defaultServerCountryName
                     expiresAtText: root.formatExpiry(root.expiresAt)
