@@ -179,6 +179,7 @@ jobs:
       - name: Collect APKs
         run: |
           mkdir -p dist/android
+          cp deploy/build/client/android-build/build/outputs/apk/oss/release/*.apk dist/android/ || true
           cp deploy/build/client/android-build/build/outputs/apk/*.apk dist/android/ || true
       - uses: actions/upload-artifact@v4
         with:
