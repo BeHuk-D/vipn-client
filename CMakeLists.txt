@@ -9,6 +9,15 @@ if(NOT AMNEZIAVPN_VERSION)
     set(AMNEZIAVPN_VERSION 1.0.0.0 CACHE STRING "Client app version")
 endif()
 
+string(REGEX MATCHALL "[0-9]+" _vipn_version_numbers "${AMNEZIAVPN_VERSION}")
+list(LENGTH _vipn_version_numbers _vipn_version_count)
+while(_vipn_version_count LESS 4)
+    list(APPEND _vipn_version_numbers 0)
+    math(EXPR _vipn_version_count "${_vipn_version_count}+1")
+endwhile()
+list(SUBLIST _vipn_version_numbers 0 4 _vipn_version_four)
+list(JOIN _vipn_version_four "," AMNEZIAVPN_VERSION_RC)
+
 set(QT_CREATOR_SKIP_PACKAGE_MANAGER_SETUP ON CACHE BOOL "" FORCE)
 set(CMAKE_PROJECT_TOP_LEVEL_INCLUDES
     ${CMAKE_SOURCE_DIR}/cmake/platform_settings.cmake
