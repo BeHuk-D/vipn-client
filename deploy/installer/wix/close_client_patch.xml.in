@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CPackWiXPatch>
+    <CPackWiXFragment Id="#PRODUCT">
+        <util:CloseApplication
+                Id="CloseViPNClient"
+                Target="@CLIENT_TARGET_NAME@.exe"
+                Description="Closing @CLIENT_APPLICATION_NAME@ client"
+                TerminateProcess="1"
+                RebootPrompt="no" />
+    </CPackWiXFragment>
+</CPackWiXPatch>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CPackWiXPatch>
+    <CPackWiXFragment Id="CM_CP_@CLIENT_APPLICATION_NAME@.@_VIPN_WIX_SERVICE_FILE_ID@">
+        <ServiceInstall
+                Id="ViPNServiceInstall"
+                Name="@CLIENT_SERVICE_NAME@"
+                DisplayName="@CLIENT_APPLICATION_NAME@ Service"
+                Description="Service for @CLIENT_APPLICATION_NAME@"
+                Start="auto"
+                Type="ownProcess"
+                ErrorControl="normal"
+                Vital="no">
+            <ServiceDependency Id="BFE" />
+            <ServiceDependency Id="nsi" />
+        </ServiceInstall>
+        <ServiceControl
+                Id="ViPNServiceControl"
+                Name="@CLIENT_SERVICE_NAME@"
+                Start="install"
+                Stop="both"
+                Remove="uninstall"
+                Wait="yes" />
+    </CPackWiXFragment>
+</CPackWiXPatch>

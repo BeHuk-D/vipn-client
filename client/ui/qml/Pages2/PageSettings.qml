@@ -1,0 +1,115 @@
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
+
+import PageEnum 1.0
+import Style 1.0
+
+import "./"
+import "../Controls2"
+import "../Controls2/TextTypes"
+import "../Config"
+
+PageType {
+    id: root
+
+    ListViewType {
+        id: listView
+
+        anchors.fill: parent
+
+        header: ColumnLayout {
+            width: listView.width
+
+            spacing: 0
+
+            NavigationBarType {
+                Layout.fillWidth: true
+                Layout.bottomMargin: 16
+
+                toolbarVisible: false
+                backButtonVisible: false
+                title: qsTr("Settings")
+            }
+        }
+
+        model: settingsEntries
+
+        delegate: ColumnLayout {
+            width: listView.width
+
+            spacing: 0
+
+            ListItemType {
+                Layout.fillWidth: true
+                Layout.leftMargin: 16
+                Layout.rightMargin: 16
+
+                visible: isVisible
+
+                leadingSlotWidth: 24
+                text: title
+                trailingIconSource: "qrc:/images/controls/chevron-right.svg"
+                icon.source: leftImagePath
+
+                onClicked: clickedHandler()
+            }
+        }
+
+        footer: ColumnLayout {
+            width: listView.width
+
+            spacing: 0
+
+            ListItemType {
+                id: close
+
+                visible: GC.isDesktop()
+                Layout.fillWidth: true
+                Layout.leftMargin: 16
+                Layout.rightMargin: 16
+
+                leadingSlotWidth: 24
+                text: qsTr("Close application")
+                trailingIconSource: "qrc:/images/controls/chevron-right.svg"
+                icon.source: "qrc:/images/controls/x-circle.svg"
+
+                onClicked: {
+                    PageController.closeApplication()
+                }
+            }
+
+            Item {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 16
+            }
+        }
+    }
+
+    property list<QtObject> settingsEntries: [
+        connection,
+        application
+    ]
+
+    QtObject {
+        id: connection
+
+        property string title: qsTr("Connection")
+        readonly property string leftImagePath: "qrc:/images/controls/radio.svg"
+        property bool isVisible: true
+        readonly property var clickedHandler: function() {
+            PageController.goToPage(PageEnum.PageSettingsConnection)
+        }
+    }
+
+    QtObject {
+        id: application
+
+        property string title: qsTr("Application")
+        readonly property string leftImagePath: "qrc:/images/controls/app.svg"
+        property bool isVisible: true
+        readonly property var clickedHandler: function() {
+            PageController.goToPage(PageEnum.PageSettingsApplication)
+        }
+    }
+}

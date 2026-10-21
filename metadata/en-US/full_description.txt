@@ -1,0 +1,7 @@
+Get your own self-hosted VPN!
+
+ViPN is a multi-protocol, open-source VPN client that offers the option to set up your own server.
+
+Free open-source software to create a personal VPN on your server. Helps to access blocked content without revealing privacy even to VPN providers. Specify IP address and credentials for your server and ViPN will configure it to connect via VPN automatically.
+
+ViPN is not a VPN service: you do not have to connect to our servers or pay us anything. Use your own self-hosted VPS or purchase one from any provider.
