@@ -11,6 +11,7 @@
 #include <QUrl>
 
 #include "amneziaApplication.h"
+#include "core/utils/deviceFingerprint.h"
 #include "systemController.h"
 
 #ifdef Q_OS_ANDROID
@@ -22,9 +23,11 @@ ImportUiController* ImportUiController::mInstance = nullptr;
 static QMutex qrDecodeMutex;
 #endif
 
-ImportUiController::ImportUiController(ImportController* importController, QObject *parent)
+ImportUiController::ImportUiController(ImportController* importController, SecureAppSettingsRepository* appSettingsRepository,
+                                       QObject *parent)
     : QObject(parent),
       m_importController(importController),
+      m_appSettingsRepository(appSettingsRepository),
       m_isNativeWireGuardConfig(false)
 {
 #if defined Q_OS_ANDROID
@@ -128,6 +131,16 @@ bool ImportUiController::extractConfigFromUrl(const QString &url)
     request.setTransferTimeout(15000);
     request.setRawHeader("Accept", "text/plain");
 
+    const QString hwid = deviceFingerprint::hardwareId(m_appSettingsRepository);
+    if (!hwid.isEmpty()) {
+        request.setRawHeader("X-ViPN-Hwid", hwid.toLatin1());
+    }
+    const QString deviceInfo = deviceFingerprint::deviceInfo(m_appSettingsRepository);
+    if (!deviceInfo.isEmpty()) {
+        request.setRawHeader("X-ViPN-Device",
+                             deviceInfo.toUtf8().toBase64(QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals));
+    }
+
     m_configUrlReply = amnApp->networkManager()->get(request);
     const QString normalizedUrl = parsed.toString();
     connect(m_configUrlReply, &QNetworkReply::finished, this, [this, normalizedUrl]() {
@@ -149,6 +162,7 @@ void ImportUiController::handleConfigUrlReply(const QString &url)
     constexpr int maxSubscriptionBytes = 256 * 1024;
     constexpr int httpStatusForbidden = 403;
     constexpr int httpStatusNotFound = 404;
+    constexpr int httpStatusConflict = 409;
 
     QNetworkReply *reply = m_configUrlReply;
     m_configUrlReply = nullptr;
@@ -158,7 +172,7 @@ void ImportUiController::handleConfigUrlReply(const QString &url)
 
     const int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
     const bool hasReplyError = reply->error() != QNetworkReply::NoError;
-    const QByteArray body = hasReplyError ? QByteArray() : reply->readAll();
+    const QByteArray body = reply->readAll();
     reply->deleteLater();
 
     const bool isRefresh = !m_refreshServerId.isEmpty();
@@ -177,6 +191,16 @@ void ImportUiController::handleConfigUrlReply(const QString &url)
 
     if (statusCode == httpStatusForbidden || statusCode == httpStatusNotFound) {
         emit subscriptionInvalid();
+    }
+
+    if (statusCode == httpStatusConflict) {
+        if (isRefresh) {
+            emit subscriptionRefreshFinished(false);
+        } else {
+            emit configUrlFetchFinished(false);
+        }
+        emit subscriptionDeviceLimitReached();
+        return;
     }
 
     if (hasReplyError || body.isEmpty() || body.size() > maxSubscriptionBytes) {

@@ -16,6 +16,7 @@ set(HEADERS ${HEADERS}
     ${CLIENT_ROOT_DIR}/core/utils/constants/apiKeys.h
     ${CLIENT_ROOT_DIR}/core/utils/constants/apiConstants.h
     ${CLIENT_ROOT_DIR}/core/utils/errorStrings.h
+    ${CLIENT_ROOT_DIR}/core/utils/deviceFingerprint.h
     ${CLIENT_ROOT_DIR}/core/utils/selfhosted/scriptsRegistry.h
     ${CLIENT_ROOT_DIR}/core/utils/qrCodeUtils.h
     ${CLIENT_ROOT_DIR}/core/controllers/coreController.h
@@ -148,6 +149,7 @@ set(SOURCES ${SOURCES}
     ${CLIENT_ROOT_DIR}/core/protocols/vpnProtocol.cpp
     ${CLIENT_ROOT_DIR}/core/utils/selfhosted/sshClient.cpp
     ${CLIENT_ROOT_DIR}/core/utils/networkUtilities.cpp
+    ${CLIENT_ROOT_DIR}/core/utils/deviceFingerprint.cpp
     ${CLIENT_ROOT_DIR}/core/utils/payloadSender.cpp
     ${CLIENT_ROOT_DIR}/core/utils/serialization/outbound.cpp
     ${CLIENT_ROOT_DIR}/core/utils/serialization/inbound.cpp

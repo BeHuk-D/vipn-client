@@ -61,6 +61,10 @@ PageType {
                 PageController.showNotificationMessage(qsTr("Could not update the subscription"))
             }
         }
+
+        function onSubscriptionDeviceLimitReached() {
+            PageController.showNotificationMessage(qsTr("This subscription is already linked to the maximum number of devices"))
+        }
     }
 
     ColumnLayout {

@@ -201,7 +201,7 @@ void CoreController::initControllers()
                                                      m_connectionController, this);
     setQmlContextProperty("InstallController", m_installUiController);
 
-    m_importController = new ImportUiController(m_importCoreController, this);
+    m_importController = new ImportUiController(m_importCoreController, m_appSettingsRepository, this);
     setQmlContextProperty("ImportController", m_importController);
 
     m_pingController = new PingController(this);

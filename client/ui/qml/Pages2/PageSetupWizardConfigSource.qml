@@ -50,6 +50,10 @@ PageType {
             }
         }
 
+        function onSubscriptionDeviceLimitReached() {
+            root.errorText = qsTr("This subscription is already linked to the maximum number of devices")
+        }
+
         function onImportFinished() {
             const previous = root.previousServerId
             root.previousServerId = ""

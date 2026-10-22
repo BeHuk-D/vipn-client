@@ -91,6 +91,10 @@ PageType {
             }
             root.manualRefresh = false
         }
+
+        function onSubscriptionDeviceLimitReached() {
+            PageController.showNotificationMessage(qsTr("This subscription is already linked to the maximum number of devices"))
+        }
     }
 
     ColumnLayout {

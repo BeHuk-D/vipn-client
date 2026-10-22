@@ -6,6 +6,7 @@
 #include "core/controllers/selfhosted/importController.h"
 
 class QNetworkReply;
+class SecureAppSettingsRepository;
 
 class ImportUiController : public QObject
 {
@@ -19,7 +20,8 @@ class ImportUiController : public QObject
     Q_PROPERTY(bool isRefreshingSubscription READ isRefreshingSubscription NOTIFY configUrlFetchChanged)
 
 public:
-    explicit ImportUiController(ImportController* importController, QObject *parent = nullptr);
+    explicit ImportUiController(ImportController* importController, SecureAppSettingsRepository* appSettingsRepository,
+                                QObject *parent = nullptr);
 
 public slots:
     void importConfig();
@@ -59,6 +61,7 @@ signals:
     void configUrlFetchChanged();
     void configUrlFetchFinished(bool success);
     void subscriptionRefreshFinished(bool success);
+    void subscriptionDeviceLimitReached();
     void subscriptionInvalid();
 
 private:
@@ -70,6 +73,7 @@ private:
     void failConfigUrlFetch();
 
     ImportController* m_importController;
+    SecureAppSettingsRepository* m_appSettingsRepository;
     QNetworkReply* m_configUrlReply = nullptr;
     QString m_refreshServerId;
 

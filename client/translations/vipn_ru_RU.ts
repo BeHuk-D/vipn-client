@@ -760,6 +760,10 @@ Already installed containers were found on the server. All installed containers 
         <translation>Не удалось обновить подписку</translation>
     </message>
     <message>
+        <source>This subscription is already linked to the maximum number of devices</source>
+        <translation>К этой подписке привязано максимальное количество устройств</translation>
+    </message>
+    <message>
         <source>ViPN</source>
         <translation>ViPN</translation>
     </message>
@@ -4610,6 +4614,10 @@ Create one from the current settings.</source>
         <translation>Не удалось загрузить подписку. Проверьте ссылку и попробуйте снова.</translation>
     </message>
     <message>
+        <source>This subscription is already linked to the maximum number of devices</source>
+        <translation>К этой подписке привязано максимальное количество устройств</translation>
+    </message>
+    <message>
         <source>ViPN</source>
         <translation>ViPN</translation>
     </message>
@@ -5200,6 +5208,10 @@ Create one from the current settings.</source>
     <message>
         <source>Could not update the subscription</source>
         <translation>Не удалось обновить подписку</translation>
+    </message>
+    <message>
+        <source>This subscription is already linked to the maximum number of devices</source>
+        <translation>К этой подписке привязано максимальное количество устройств</translation>
     </message>
     <message>
         <source>Subscription</source>
