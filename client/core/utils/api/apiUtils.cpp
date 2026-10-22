@@ -123,12 +123,10 @@ int apiUtils::daysUntil(const QString &date)
     if (!endDate.isValid()) {
         return -1;
     }
-    const qint64 secondsLeft = QDateTime::currentDateTimeUtc().secsTo(endDate);
-    if (secondsLeft <= 0) {
-        return 0;
-    }
-    constexpr qint64 secondsPerDay = 86400;
-    return static_cast<int>((secondsLeft + secondsPerDay - 1) / secondsPerDay);
+
+    const QDate endLocalDate = endDate.toLocalTime().date();
+    const int days = QDate::currentDate().daysTo(endLocalDate);
+    return days < 0 ? 0 : days;
 }
 
 amnezia::ErrorCode apiUtils::checkApiResponseErrors(const QByteArray &responseBody)
