@@ -1,6 +1,7 @@
 #!/bin/bash
 
 APP_NAME=ViPN
+SOCKET_GROUP=vipn
 LOG_FOLDER=/var/log/$APP_NAME
 LOG_FILE="$LOG_FOLDER/post-install.log"
 APP_PATH=/opt/$APP_NAME
@@ -17,6 +18,20 @@ fi
 
 date > $LOG_FILE
 echo "Script started" >> $LOG_FILE
+
+if getent group "$SOCKET_GROUP" > /dev/null 2>&1; then
+	echo "Group $SOCKET_GROUP already exists" >> $LOG_FILE
+else
+	sudo groupadd --system "$SOCKET_GROUP" >> $LOG_FILE
+	echo "Group $SOCKET_GROUP created" >> $LOG_FILE
+fi
+
+IPC_USER="${SUDO_USER:-$(logname 2>/dev/null)}"
+if [ -n "$IPC_USER" ] && [ "$IPC_USER" != "root" ]; then
+	sudo usermod -aG "$SOCKET_GROUP" "$IPC_USER" >> $LOG_FILE
+	echo "User $IPC_USER added to group $SOCKET_GROUP (re-login required)" >> $LOG_FILE
+fi
+
 sudo killall -9 $APP_NAME 2>> $LOG_FILE
 
 if command -v steamos-readonly &> /dev/null; then

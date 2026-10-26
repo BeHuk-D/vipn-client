@@ -172,7 +172,7 @@ void CoreController::initCoreControllers()
     m_subscriptionController = new SubscriptionController(m_serversRepository, m_appSettingsRepository);
     m_storePurchaseController = new StorePurchaseController(m_serversRepository, m_appSettingsRepository);
     m_newsController = new NewsController(m_appSettingsRepository, m_serversRepository);
-    m_updateController = new UpdateController(m_appSettingsRepository, this);
+    m_updateController = new UpdateController(this);
     
     m_installController = new InstallController(m_serversRepository, m_appSettingsRepository, this);
     m_exportController = new ExportController(m_serversRepository, m_appSettingsRepository, this);

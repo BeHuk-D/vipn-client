@@ -8,11 +8,6 @@ UpdateUiController::UpdateUiController(UpdateController* updateController, QObje
 {
     if (m_updateController) {
         connect(m_updateController, &UpdateController::updateFound, this, &UpdateUiController::updateFound);
-        connect(m_updateController, &UpdateController::updateNotFound, this, &UpdateUiController::updateNotFound);
-        connect(m_updateController, &UpdateController::updateCheckFailed, this, &UpdateUiController::updateCheckFailed);
-        connect(m_updateController, &UpdateController::updateStateChanged, this, &UpdateUiController::updateStateChanged);
-        connect(m_updateController, &UpdateController::updateCheckRunningChanged, this, &UpdateUiController::isCheckRunningChanged);
-        connect(m_updateController, &UpdateController::downloadProgressChanged, this, &UpdateUiController::downloadProgressChanged);
     }
 }
 
@@ -42,78 +37,14 @@ QString UpdateUiController::getDescription() const
     return m_updateController ? m_updateController->getDescription() : QString();
 }
 
-QStringList UpdateUiController::getTags() const
+QString UpdateUiController::getReleasePageUrl() const
 {
-    return m_updateController ? m_updateController->getTags() : QStringList();
+    return m_updateController ? m_updateController->getReleasePageUrl() : QString();
 }
 
-QStringList UpdateUiController::getNewFeatures() const
-{
-    return m_updateController ? m_updateController->getNewFeatures() : QStringList();
-}
-
-QStringList UpdateUiController::getImprovements() const
-{
-    return m_updateController ? m_updateController->getImprovements() : QStringList();
-}
-
-QStringList UpdateUiController::getBugFixes() const
-{
-    return m_updateController ? m_updateController->getBugFixes() : QStringList();
-}
-
-int UpdateUiController::getUpdateState() const
-{
-    return m_updateController ? static_cast<int>(m_updateController->getUpdateState())
-                              : static_cast<int>(UpdateState::State::Idle);
-}
-
-bool UpdateUiController::isStoreUpdate() const
-{
-    return m_updateController ? m_updateController->isStoreUpdate() : false;
-}
-
-bool UpdateUiController::isCheckRunning() const
-{
-    return m_updateController ? m_updateController->isUpdateCheckRunning() : false;
-}
-
-double UpdateUiController::getDownloadProgress() const
-{
-    return m_updateController ? m_updateController->getDownloadProgress() : 0.0;
-}
-
-void UpdateUiController::checkForUpdates()
+void UpdateUiController::openReleasePage()
 {
     if (m_updateController) {
-        m_updateController->checkForUpdates();
-    }
-}
-
-void UpdateUiController::update()
-{
-    if (m_updateController) {
-        m_updateController->startUpdate();
-    }
-}
-
-void UpdateUiController::install()
-{
-    if (m_updateController) {
-        m_updateController->installUpdate();
-    }
-}
-
-void UpdateUiController::retry()
-{
-    if (m_updateController) {
-        m_updateController->startUpdate();
-    }
-}
-
-void UpdateUiController::cancel()
-{
-    if (m_updateController) {
-        m_updateController->cancelDownload();
+        m_updateController->openReleasePage();
     }
 }

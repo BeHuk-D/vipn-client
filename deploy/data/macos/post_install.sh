@@ -2,6 +2,7 @@
 
 APP_NAME=AmneziaVPN
 SERVICE_GROUP=amnvpn
+SOCKET_GROUP=vipn
 PLIST_NAME=$APP_NAME.plist
 LAUNCH_DAEMONS_PLIST_NAME=/Library/LaunchDaemons/$PLIST_NAME
 LOG_FOLDER=/var/log/$APP_NAME
@@ -53,6 +54,22 @@ fi
 run_cmd chmod -R a-w "$APP_PATH/"
 run_cmd chown -R root "$APP_PATH/"
 run_cmd chgrp -R wheel "$APP_PATH/"
+
+# Group allowed to talk to the privileged service over the IPC socket
+if dscl . -read "/Groups/$SOCKET_GROUP" >/dev/null 2>&1; then
+  log "Group $SOCKET_GROUP already exists"
+else
+  next_gid=$(dscl . -list /Groups PrimaryGroupID 2>/dev/null | awk '{print $2}' | sort -n | awk '$1>=500{g=$1} END{print (g?g+1:501)}')
+  run_cmd dscl . -create "/Groups/$SOCKET_GROUP"
+  run_cmd dscl . -create "/Groups/$SOCKET_GROUP" PrimaryGroupID "$next_gid"
+  run_cmd dscl . -create "/Groups/$SOCKET_GROUP" RealName "ViPN IPC Group"
+fi
+
+CONSOLE_USER=$(stat -f %Su /dev/console)
+if [ -n "$CONSOLE_USER" ] && [ "$CONSOLE_USER" != "root" ]; then
+  run_cmd dseditgroup -o edit -a "$CONSOLE_USER" -t user "$SOCKET_GROUP"
+  log "User $CONSOLE_USER added to group $SOCKET_GROUP (re-login required)"
+fi
 
 log "Requesting ${APP_NAME} to quit gracefully"
 run_cmd osascript -e 'tell application "AmneziaVPN" to quit' || true

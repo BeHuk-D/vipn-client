@@ -19,7 +19,6 @@
 #include <QtQuick/QQuickWindow>  
 #include <QWindow>     
 
-#include "core/controllers/updateController.h"
 #include "core/protocols/qmlRegisterProtocols.h"
 #include "logger.h"
 #include "ui/controllers/qml/pageController.h"
@@ -270,7 +269,6 @@ void AmneziaApplication::registerTypes()
     amnezia::declareQmlProtocolEnum();
     Vpn::declareQmlVpnConnectionStateEnum();
     PageLoader::declareQmlPageEnum();
-    UpdateState::declareQmlUpdateStateEnum();
 }
 
 void AmneziaApplication::loadFonts()

@@ -38,11 +38,14 @@ int IpcServer::createPrivilegedProcess()
 
     ProcessDescriptor pd(this);
 
-    pd.localServer->setSocketOptions(QLocalServer::WorldAccessOption);
-
     if (!pd.localServer->listen(amnezia::getIpcProcessUrl(m_localpid))) {
         qDebug() << QString("Unable to start the server: %1.").arg(pd.localServer->errorString());
         return -1;
+    }
+
+    QString socketError;
+    if (!amnezia::restrictIpcSocket(amnezia::getIpcProcessUrl(m_localpid), socketError)) {
+        qDebug() << "Failed to restrict IPC socket access:" << socketError;
     }
 
     // Make sure any connections are handed to QtRO

@@ -1,0 +1,43 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+env:
+  QT_VERSION: '6.10.1'
+  QT_DESKTOP_MODULES: 'qtremoteobjects qt5compat qtshadertools qthttpserver qtwebsockets qtimageformats'
+
+jobs:
+  linux:
+    name: Linux x86_64
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: ${{ env.QT_VERSION }}
+          host: linux
+          target: desktop
+          arch: linux_gcc_64
+          modules: ${{ env.QT_DESKTOP_MODULES }}
+          dir: ${{ runner.temp }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Conan
+        run: pip install "conan==2.28.0"
+      - name: Install system packages
+        run: sudo apt-get update && sudo apt-get install -y libxkbcommon-x11-0 libsecret-1-dev
+      - name: Build with tests
+        env:
+          QT_INSTALL_DIR: ${{ runner.temp }}
+          AMNEZIA_BUILD_TESTS: 'ON'
+        run: deploy/build.sh --generator Ninja
+      - name: Run tests
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: ctest --test-dir deploy/build/client/tests --output-on-failure

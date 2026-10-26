@@ -27,7 +27,6 @@ namespace PageLoader
         PageSettingsNewsNotifications,
         PageSettingsNewsDetail,
         PageSettingsBackup,
-        PageSettingsAbout,
         PageSettingsLogging,
         PageSettingsLogViewer,
         PageSettingsSplitTunneling,
@@ -94,7 +93,6 @@ namespace PageLoader
 
         PageUpdate,
 
-        PageSubscription,
     };
     Q_ENUM_NS(PageEnum)
 

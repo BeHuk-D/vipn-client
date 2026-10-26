@@ -117,13 +117,6 @@ case "$TARGET" in
         : ${CMAKE_GENERATOR:="Xcode"}
         : ${CMAKE_PREFIX_PATH:="$QT_ROOT_PATH"/macos}
         ;;
-    ios)
-        DEPLOY=1
-        no_installers=1
-        : ${CMAKE_GENERATOR:="Xcode"}
-        : ${CMAKE_OSX_SYSROOT=iphoneos}
-        : ${CMAKE_TOOLCHAIN_FILE:="$QT_ROOT_PATH/ios/lib/cmake/Qt6/qt.toolchain.cmake"}
-        ;;
     android)
         no_installers=1
         : ${CMAKE_GENERATOR:="Ninja"}

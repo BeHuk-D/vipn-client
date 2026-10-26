@@ -7,7 +7,6 @@
         <file>Components/CountryListItem.qml</file>
         <file>Components/FavoriteButton.qml</file>
         <file>Components/ServerListItem.qml</file>
-        <file>Components/UpdateSupportDrawer.qml</file>
         <file>Components/PromoBanner.qml</file>
         <file>Components/ConnectButton.qml</file>
         <file>Components/SubscriptionCard.qml</file>
@@ -52,7 +51,6 @@
         <file>Controls2/ListGroupType.qml</file>
         <file>Controls2/AlertDialogType.qml</file>
         <file>Controls2/DialogButtonType.qml</file>
-        <file>Controls2/ChangelogSectionType.qml</file>
         <file>Controls2/BackdropBlurType.qml</file>
         <file>Controls2/RadioIndicatorType.qml</file>
         <file>Controls2/StatusBadgeType.qml</file>
@@ -135,8 +133,6 @@
         <file>Pages2/PageServiceSocksProxySettings.qml</file>
         <file>Pages2/PageServiceTorWebsiteSettings.qml</file>
         <file>Pages2/PageSettings.qml</file>
-        <file>Pages2/PageSubscription.qml</file>
-        <file>Pages2/PageSettingsAbout.qml</file>
         <file>Pages2/PageSettingsApplication.qml</file>
         <file>Pages2/PageSettingsConnection.qml</file>
         <file>Pages2/PageSettingsDns.qml</file>

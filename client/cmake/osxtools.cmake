@@ -50,8 +50,6 @@ function(osx_bundle_assetcatalog TARGET)
 
     if(XCASSETS_PLATFORM)
         set(XCASSETS_TARGET_ARGS --platform ${XCASSETS_PLATFORM})
-    elseif(IOS)
-        set(XCASSETS_TARGET_ARGS --platform iphoneos)
     else()
         set(XCASSETS_TARGET_ARGS --platform macosx)
     endif()
@@ -76,9 +74,7 @@ function(osx_bundle_assetcatalog TARGET)
     )
 
     ## Patch the asset catalog into the target bundle.
-    if(NOT IOS)
-        set(XCASSETS_RESOURCE_DIR "Resources")
-    endif()
+    set(XCASSETS_RESOURCE_DIR "Resources")
     add_custom_command(TARGET ${TARGET} POST_BUILD
         COMMENT "Bundling asset catalog"
         COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_BINARY_DIR}/xcassets $<TARGET_BUNDLE_CONTENT_DIR:${TARGET}>/${XCASSETS_RESOURCE_DIR}

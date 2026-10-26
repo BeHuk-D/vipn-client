@@ -36,7 +36,7 @@ add_definitions(-DDEV_S3_ENDPOINT="$ENV{DEV_S3_ENDPOINT}")
 add_definitions(-DFREE_V2_ENDPOINT="$ENV{FREE_V2_ENDPOINT}")
 add_definitions(-DPREM_V1_ENDPOINT="$ENV{PREM_V1_ENDPOINT}")
 
-if(WIN32 OR (APPLE AND NOT IOS) OR (LINUX AND NOT ANDROID))
+if(WIN32 OR APPLE OR (LINUX AND NOT ANDROID))
     set(PACKAGES ${PACKAGES} Widgets HttpServer)
 endif()
 
@@ -59,7 +59,7 @@ if(TARGET Qt6::CorePrivate)
     add_compile_definitions(AMNEZIA_HAS_QZIPWRITER)
 endif()
 
-if(WIN32 OR (APPLE AND NOT IOS) OR (LINUX AND NOT ANDROID))
+if(WIN32 OR APPLE OR (LINUX AND NOT ANDROID))
     set(LIBS ${LIBS} Qt6::Widgets Qt6::HttpServer)
 endif()
 
@@ -72,7 +72,7 @@ target_compile_definitions(${PROJECT} PRIVATE
     CLIENT_KEYCHAIN_NAME_STR=\"${CLIENT_KEYCHAIN_NAME}\"
 )
 
-if(WIN32 OR (APPLE AND NOT IOS AND NOT MACOS_NE) OR (LINUX AND NOT ANDROID))
+if(WIN32 OR (APPLE AND NOT MACOS_NE) OR (LINUX AND NOT ANDROID))
     qt_add_repc_replicas(${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../ipc/ipc_interface.rep)
     qt_add_repc_replicas(${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../ipc/ipc_process_interface.rep)
 endif()
@@ -155,16 +155,6 @@ configure_file(
     ${CMAKE_CURRENT_BINARY_DIR}/core/utils/swiftBridgeConfig.h
     @ONLY
 )
-# Swift can't consume a `-DGROUP_ID="value"` compile define (Swift -D flags are
-# presence-only), unlike the Objective-C++ sources that read GROUP_ID directly.
-# Generate a Swift constant instead so Log.swift can use the branded app group.
-set(CLIENT_GROUP_IDENTIFIER_SWIFT_FILE ${CMAKE_CURRENT_BINARY_DIR}/platforms/ios/GroupIdentifier.swift)
-configure_file(
-    ${CMAKE_CURRENT_LIST_DIR}/platforms/ios/GroupIdentifier.swift.in
-    ${CLIENT_GROUP_IDENTIFIER_SWIFT_FILE}
-    @ONLY
-)
-
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_definitions(${PROJECT} PRIVATE "MZ_DEBUG")
 endif()
@@ -194,7 +184,6 @@ if(APPLE)
 
     set(CMAKE_XCODE_GENERATE_SCHEME FALSE)
     set(CMAKE_XCODE_ATTRIBUTE_DEVELOPMENT_TEAM ${BUILD_VPN_DEVELOPMENT_TEAM})
-    set(CMAKE_XCODE_ATTRIBUTE_GROUP_ID_IOS ${BUILD_IOS_GROUP_IDENTIFIER})
     
     if (BUILD_VPN_KEYCHAIN)
         set(CMAKE_XCODE_ATTRIBUTE_OTHER_CODE_SIGN_FLAGS "--keychain ${BUILD_VPN_KEYCHAIN}")
@@ -207,7 +196,7 @@ if(LINUX AND NOT ANDROID)
     set(LIBS ${LIBS} -Wl,--no-as-needed $<TARGET_LINKER_FILE:Qt6::RemoteObjects> -Wl,--as-needed)
 endif()
 
-if(WIN32 OR (APPLE AND NOT IOS AND NOT MACOS_NE) OR (LINUX AND NOT ANDROID))
+if(WIN32 OR (APPLE AND NOT MACOS_NE) OR (LINUX AND NOT ANDROID))
     add_compile_definitions(AMNEZIA_DESKTOP)
 endif()
 
@@ -215,10 +204,7 @@ if(ANDROID)
     include(cmake/android.cmake)
 endif()
 
-if(IOS)
-    include(cmake/ios.cmake)
-    include(cmake/ios-arch-fixup.cmake)
-elseif(APPLE AND MACOS_NE)
+if(APPLE AND MACOS_NE)
     include(cmake/macos_ne.cmake)
 elseif(APPLE)
     include(cmake/osxtools.cmake)
@@ -287,7 +273,7 @@ install(SCRIPT ${QT_DEPLOY_SCRIPT}
     COMPONENT ${CLIENT_APPLICATION_NAME}
 )
 
-if (APPLE AND NOT IOS AND NOT MACOS_NE)
+if (APPLE AND NOT MACOS_NE)
     list(APPEND OVPN_SCRIPTS "${CMAKE_SOURCE_DIR}/deploy/data/macos/update-resolv-conf.sh")
     set_target_properties(${PROJECT} PROPERTIES
         XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED "NO"
