@@ -88,6 +88,8 @@ PageType {
 
     property list<QtObject> settingsEntries: [
         connection,
+        splitTunneling,
+        appSplitTunneling,
         application
     ]
 
@@ -99,6 +101,28 @@ PageType {
         property bool isVisible: true
         readonly property var clickedHandler: function() {
             PageController.goToPage(PageEnum.PageSettingsConnection)
+        }
+    }
+
+    QtObject {
+        id: splitTunneling
+
+        property string title: qsTr("Split tunneling")
+        readonly property string leftImagePath: "qrc:/images/controls/split-tunneling.svg"
+        property bool isVisible: GC.isDesktop()
+        readonly property var clickedHandler: function() {
+            PageController.goToPage(PageEnum.PageSettingsSplitTunneling)
+        }
+    }
+
+    QtObject {
+        id: appSplitTunneling
+
+        property string title: qsTr("App split tunneling")
+        readonly property string leftImagePath: "qrc:/images/controls/arrow-left-right.svg"
+        property bool isVisible: Qt.platform.os === "windows"
+        readonly property var clickedHandler: function() {
+            PageController.goToPage(PageEnum.PageSettingsAppSplitTunneling)
         }
     }
 

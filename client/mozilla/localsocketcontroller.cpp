@@ -29,6 +29,7 @@
 #include "core/protocols/protocolUtils.h"
 #include "core/utils/constants/configKeys.h"
 #include "core/utils/constants/protocolConstants.h"
+#include "core/utils/routeModes.h"
 
 // How many times do we try to reconnect.
 constexpr int MAX_CONNECTION_RETRY = 10;
@@ -176,9 +177,10 @@ void LocalSocketController::activate(const QJsonObject &rawConfig) {
   QJsonArray jsAllowedIPAddesses;
 
   QJsonArray plainAllowedIP = wgConfig.value(amnezia::configKey::allowedIps).toArray();
-  QJsonArray defaultAllowedIP = { "0.0.0.0/0", "::/0" };
+  const bool plainAllowedIPIsFullTunnel =
+      plainAllowedIP.isEmpty() || plainAllowedIP.contains(QStringLiteral("0.0.0.0/0"));
 
-  if (plainAllowedIP != defaultAllowedIP && !plainAllowedIP.isEmpty()) {
+  if (!plainAllowedIPIsFullTunnel) {
     // Use AllowedIP list from WG config because of higher priority
     for (auto v : plainAllowedIP) {
       QString ipRange = v.toString();
@@ -246,7 +248,9 @@ void LocalSocketController::activate(const QJsonObject &rawConfig) {
 
   json.insert("excludedAddresses", jsExcludedAddresses);
 
-  json.insert("vpnDisabledApps", splitTunnelApps);
+  if (appSplitTunnelType == amnezia::AppsRouteMode::VpnAllExceptApps && !splitTunnelApps.isEmpty()) {
+    json.insert("vpnDisabledApps", splitTunnelApps);
+  }
 
   json.insert("allowedDnsServers", allowedDns);
 

@@ -454,9 +454,8 @@ void VpnConnection::appendSplitTunnelingConfig()
         }
 
         QJsonArray allowedIpsJsonArray = configData.value(configKey::allowedIps).toArray();
-        if (allowedIpsJsonArray.contains("0.0.0.0/0") && allowedIpsJsonArray.contains("::/0")) {
-            allowSiteBasedSplitTunneling = true;
-        }
+        allowSiteBasedSplitTunneling = allowedIpsJsonArray.isEmpty()
+                || allowedIpsJsonArray.contains(QStringLiteral("0.0.0.0/0"));
     }
 
     amnezia::RouteMode routeMode = amnezia::RouteMode::VpnAllSites;
@@ -488,8 +487,15 @@ void VpnConnection::appendSplitTunnelingConfig()
                 routeMode = amnezia::RouteMode::VpnAllSites;
             } else if (routeMode == amnezia::RouteMode::VpnOnlyForwardSites) {
                 // Allow traffic to Amnezia DNS
-                sitesJsonArray.append(m_vpnConfiguration.value(configKey::dns1).toString());
-                sitesJsonArray.append(m_vpnConfiguration.value(configKey::dns2).toString());
+                const QStringList dnsServers = {
+                    m_vpnConfiguration.value(configKey::dns1).toString(),
+                    m_vpnConfiguration.value(configKey::dns2).toString()
+                };
+                for (const QString &dns : dnsServers) {
+                    if (!dns.isEmpty()) {
+                        sitesJsonArray.append(dns);
+                    }
+                }
             }
         }
     }
