@@ -128,6 +128,8 @@ void LocalSocketController::activate(const QJsonObject &rawConfig) {
 
   int splitTunnelType = rawConfig.value("splitTunnelType").toInt();
   QJsonArray splitTunnelSites = rawConfig.value("splitTunnelSites").toArray();
+  logger.debug() << "Split tunnel type:" << splitTunnelType
+                 << "sites:" << splitTunnelSites.size();
 
   int appSplitTunnelType = rawConfig.value(amnezia::configKey::appSplitTunnelType).toInt();
   QJsonArray splitTunnelApps = rawConfig.value(amnezia::configKey::splitTunnelApps).toArray();

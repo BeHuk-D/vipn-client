@@ -269,8 +269,12 @@ bool WireguardUtilsLinux::updatePeer(const InterfaceConfig& config) {
     // Exclude the server address, except for multihop exit servers.
     if ((config.m_hopType != InterfaceConfig::MultiHopExit) &&
         (m_rtmonitor != nullptr)) {
-        m_rtmonitor->addExclusionRoute(IPAddress(config.m_serverIpv4AddrIn));
-        m_rtmonitor->addExclusionRoute(IPAddress(config.m_serverIpv6AddrIn));
+        if (!config.m_serverIpv4AddrIn.isEmpty()) {
+            m_rtmonitor->addExclusionRoute(IPAddress(config.m_serverIpv4AddrIn));
+        }
+        if (!config.m_serverIpv6AddrIn.isEmpty()) {
+            m_rtmonitor->addExclusionRoute(IPAddress(config.m_serverIpv6AddrIn));
+        }
     }
 
     int err = uapiErrno(uapiCommand(message));
@@ -287,8 +291,12 @@ bool WireguardUtilsLinux::deletePeer(const InterfaceConfig& config) {
     // Clear exclustion routes for this peer.
     if ((config.m_hopType != InterfaceConfig::MultiHopExit) &&
         (m_rtmonitor != nullptr)) {
-        m_rtmonitor->deleteExclusionRoute(IPAddress(config.m_serverIpv4AddrIn));
-        m_rtmonitor->deleteExclusionRoute(IPAddress(config.m_serverIpv6AddrIn));
+        if (!config.m_serverIpv4AddrIn.isEmpty()) {
+            m_rtmonitor->deleteExclusionRoute(IPAddress(config.m_serverIpv4AddrIn));
+        }
+        if (!config.m_serverIpv6AddrIn.isEmpty()) {
+            m_rtmonitor->deleteExclusionRoute(IPAddress(config.m_serverIpv6AddrIn));
+        }
     }
 
     QString message;

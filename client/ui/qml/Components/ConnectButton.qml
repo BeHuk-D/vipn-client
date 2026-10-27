@@ -36,6 +36,9 @@ Button {
         readonly property color ringColor: root.connected && !root.inProgress ? AmneziaStyle.color.accentLight
                                                                                : AmneziaStyle.color.borderEmphasis
         readonly property int glowMargin: 24
+        readonly property bool idle: !root.connected && !root.inProgress
+        readonly property real ringOpacity: idle ? 0.6 : 1.0
+        readonly property real glowOpacity: idle ? 0.3 : 1.0
     }
 
     background: Item {
@@ -45,7 +48,7 @@ Button {
         Item {
             anchors.fill: parent
 
-            opacity: 0.1
+            opacity: 0.1 * d.glowOpacity
 
             Item {
                 id: diskSource
@@ -93,6 +96,7 @@ Button {
 
                 anchors.fill: parent
                 anchors.margins: -d.glowMargin
+                opacity: d.ringOpacity
 
                 Shape {
                     anchors.fill: parent
@@ -120,6 +124,7 @@ Button {
             SelectionGlowType {
                 anchors.fill: parent
                 z: -1
+                opacity: d.glowOpacity
 
                 source: ringSource
                 color: d.ringColor

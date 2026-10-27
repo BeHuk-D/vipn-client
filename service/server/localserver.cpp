@@ -1,5 +1,6 @@
 #include "localserver.h"
 
+#include <QAbstractSocket>
 #include <QCoreApplication>
 #include <QDebug>
 #include <QFileInfo>
@@ -19,6 +20,17 @@
 
 namespace {
 Logger logger("WgDaemonServer");
+
+bool clearStaleSocket(const QString &serverName)
+{
+    QLocalSocket probe;
+    probe.connectToServer(serverName);
+    if (probe.waitForConnected(300)) {
+        probe.disconnectFromServer();
+        return false;
+    }
+    return QLocalServer::removeServer(serverName);
+}
 }
 
 LocalServer::LocalServer(QObject *parent) : QObject(parent),
@@ -27,13 +39,19 @@ LocalServer::LocalServer(QObject *parent) : QObject(parent),
     // Create the server and listen outside of QtRO
     m_server = QSharedPointer<QLocalServer>(new QLocalServer(this));
 
-    if (!m_server->listen(amnezia::getIpcServiceUrl())) {
-        qDebug() << QString("Unable to start the server: %1.").arg(m_server->errorString());
-        return;
+    const QString ipcUrl = amnezia::getIpcServiceUrl();
+    if (!m_server->listen(ipcUrl)) {
+        const bool removed = m_server->serverError() == QAbstractSocket::AddressInUseError
+                && clearStaleSocket(ipcUrl);
+        if (!removed || !m_server->listen(ipcUrl)) {
+            logger.error() << "Unable to start the server:" << m_server->errorString();
+            return;
+        }
+        logger.info() << "Removed stale IPC socket" << ipcUrl;
     }
 
     QString socketError;
-    if (!amnezia::restrictIpcSocket(amnezia::getIpcServiceUrl(), socketError)) {
+    if (!amnezia::restrictIpcSocket(ipcUrl, socketError)) {
         logger.error() << "Failed to restrict IPC socket access:" << socketError;
     }
 
