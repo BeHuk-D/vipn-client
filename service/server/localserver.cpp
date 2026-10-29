@@ -27,9 +27,16 @@ bool clearStaleSocket(const QString &serverName)
     probe.connectToServer(serverName);
     if (probe.waitForConnected(300)) {
         probe.disconnectFromServer();
+        logger.error() << "Socket" << serverName << "is already served by another process";
         return false;
     }
-    return QLocalServer::removeServer(serverName);
+
+    if (!QLocalServer::removeServer(serverName)) {
+        logger.error() << "Failed to remove socket" << serverName << probe.errorString();
+        return false;
+    }
+
+    return true;
 }
 }
 

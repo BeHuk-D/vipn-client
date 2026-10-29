@@ -32,6 +32,13 @@ if [ -n "$IPC_USER" ] && [ "$IPC_USER" != "root" ]; then
 	echo "User $IPC_USER added to group $SOCKET_GROUP (re-login required)" >> $LOG_FILE
 fi
 
+AMNEZIA_UNIT=/etc/systemd/system/AmneziaVPN.service
+if [ -f "$AMNEZIA_UNIT" ] && grep -q "/opt/AmneziaVPN/" "$AMNEZIA_UNIT"; then
+	echo "Conflicting AmneziaVPN service found, stopping it" >> $LOG_FILE
+	sudo systemctl stop AmneziaVPN >> $LOG_FILE 2>&1
+	sudo systemctl disable AmneziaVPN >> $LOG_FILE 2>&1
+fi
+
 sudo killall -9 $APP_NAME 2>> $LOG_FILE
 
 if command -v steamos-readonly &> /dev/null; then
