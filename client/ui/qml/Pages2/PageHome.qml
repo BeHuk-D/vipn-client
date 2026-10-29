@@ -43,10 +43,14 @@ PageType {
     }
 
     function measurePing() {
+        const serverId = ServersUiController.defaultServerId
+        if (serverId === "") {
+            return
+        }
         if (ConnectionController.isConnected) {
-            PingController.ping(ServersUiController.defaultServerDns, 53)
+            PingController.pingServer(serverId, ServersUiController.defaultServerDns, 53)
         } else {
-            PingController.ping(ServersUiController.defaultServerHost, 443)
+            PingController.pingServer(serverId, ServersUiController.defaultServerHost, 443)
         }
     }
 
@@ -145,57 +149,6 @@ PageType {
             }
         }
 
-        ButtonType {
-            Layout.alignment: Qt.AlignHCenter
-            Layout.bottomMargin: 12
-
-            visible: root.hasSubscription
-
-            variant: ButtonType.Text
-            size: ButtonType.Medium
-
-            enabled: !PingController.isPinging
-
-            text: PingController.isPinging
-                  ? qsTr("Measuring…")
-                  : (PingController.pingMs >= 0
-                     ? qsTr("Ping %1 ms").arg(PingController.pingMs)
-                     : qsTr("Check ping"))
-
-            onClicked: root.measurePing()
-        }
-
-        RowLayout {
-            Layout.alignment: Qt.AlignHCenter
-            Layout.fillWidth: true
-            Layout.bottomMargin: 12
-
-            visible: ServersUiController.getServersCount() > 1
-
-            spacing: 8
-
-            Repeater {
-                model: ServersModel
-
-                delegate: ButtonType {
-                    readonly property bool current: isDefault
-
-                    size: ButtonType.Medium
-                    variant: current ? ButtonType.Primary : ButtonType.Secondary
-
-                    text: ServersUiController.serverCountryName(serverId)
-
-                    onClicked: {
-                        if (ConnectionController.isConnected) {
-                            PageController.showNotificationMessage(qsTr("Disconnect before switching server"))
-                            return
-                        }
-                        ServersUiController.setDefaultServer(serverId)
-                    }
-                }
-            }
-        }
-
         SubscriptionCard {
             Layout.fillWidth: true
 
@@ -211,6 +164,14 @@ PageType {
 
             onRefreshRequested: root.refreshSubscription(true)
             onReplaceRequested: root.openReplace()
+            onPingRequested: root.measurePing()
+            onServerSelected: function(serverId) {
+                if (ConnectionController.isConnected) {
+                    PageController.showNotificationMessage(qsTr("Disconnect before switching server"))
+                    return
+                }
+                ServersUiController.setDefaultServer(serverId)
+            }
         }
 
     }

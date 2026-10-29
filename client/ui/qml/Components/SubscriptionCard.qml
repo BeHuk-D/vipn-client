@@ -18,8 +18,14 @@ Rectangle {
     property bool isExpiringSoon: false
     property bool isRefreshing: false
 
+    property bool serversExpanded: false
+    readonly property bool canSwitchServer: ServersUiController.getServersCount() > 1
+    readonly property int pingRevision: PingController.revision
+
     signal refreshRequested()
     signal replaceRequested()
+    signal pingRequested()
+    signal serverSelected(string serverId)
 
     readonly property string statusText: {
         if (root.isExpired) {
@@ -32,6 +38,18 @@ Rectangle {
             return qsTr("%n day(s) left", "", root.daysLeft)
         }
         return qsTr("Expiration date unknown")
+    }
+
+    function pingText(serverId) {
+        const revision = root.pingRevision
+        if (!serverId || revision < 0) {
+            return ""
+        }
+        if (PingController.isServerPingPending(serverId)) {
+            return qsTr("…")
+        }
+        const value = PingController.serverPingMs(serverId)
+        return value >= 0 ? qsTr("%1 ms").arg(value) : "—"
     }
 
     implicitHeight: content.implicitHeight + 32
@@ -49,29 +67,87 @@ Rectangle {
 
         spacing: 0
 
-        RowLayout {
+        Item {
             Layout.fillWidth: true
-            Layout.alignment: Qt.AlignHCenter
+            implicitHeight: 28
 
-            spacing: 8
+            RowLayout {
+                anchors.centerIn: parent
+                width: Math.min(implicitWidth, root.width - 140)
 
-            visible: root.countryName !== ""
+                spacing: 8
 
-            Image {
-                width: 20
-                height: 15
-                fillMode: Image.PreserveAspectFit
-                source: root.countryCode !== ""
-                        ? "qrc:/countriesFlags/images/flagKit/" + root.countryCode + ".svg"
-                        : ""
-                visible: root.countryCode !== ""
+                Image {
+                    width: 20
+                    height: 15
+                    fillMode: Image.PreserveAspectFit
+                    source: root.countryCode !== ""
+                            ? "qrc:/countriesFlags/images/flagKit/" + root.countryCode + ".svg"
+                            : ""
+                    visible: root.countryCode !== ""
+                }
+
+                BodyTextType {
+                    Layout.maximumWidth: root.width - 168
+
+                    text: root.countryName
+                    color: AmneziaStyle.color.textPrimary
+                    wrapMode: Text.NoWrap
+                    elide: Text.ElideRight
+                }
             }
 
-            BodyTextType {
-                text: root.countryName
-                color: AmneziaStyle.color.textPrimary
-                wrapMode: Text.NoWrap
+            RowLayout {
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+
+                spacing: 6
+
+                BodyTextType {
+                    text: root.pingText(ServersUiController.defaultServerId)
+                    color: AmneziaStyle.color.textTertiary
+                    wrapMode: Text.NoWrap
+                }
+
+                Image {
+                    width: 16
+                    height: 16
+                    fillMode: Image.PreserveAspectFit
+                    visible: root.canSwitchServer
+
+                    source: "qrc:/images/controls/chevron-down.svg"
+                    rotation: root.serversExpanded ? 180 : 0
+
+                    Behavior on rotation {
+                        NumberAnimation {
+                            duration: 140
+                            easing.type: Easing.OutCubic
+                        }
+                    }
+                }
             }
+
+            MouseArea {
+                anchors.fill: parent
+
+                onClicked: {
+                    if (root.canSwitchServer) {
+                        root.serversExpanded = !root.serversExpanded
+                    } else {
+                        root.pingRequested()
+                    }
+                }
+            }
+        }
+
+        Loader {
+            Layout.fillWidth: true
+            Layout.topMargin: root.serversExpanded ? 10 : 0
+
+            active: root.serversExpanded
+            visible: root.serversExpanded
+
+            sourceComponent: serverList
         }
 
         Rectangle {
@@ -137,6 +213,95 @@ Rectangle {
                 text: qsTr("Replace")
 
                 onClicked: root.replaceRequested()
+            }
+        }
+    }
+
+    Component {
+        id: serverList
+
+        ColumnLayout {
+            spacing: 0
+
+            Repeater {
+                id: serverRepeater
+
+                model: ServersModel
+
+                delegate: Item {
+                    id: serverRow
+
+                    Layout.fillWidth: true
+                    implicitHeight: 44
+
+                    Rectangle {
+                        anchors.fill: parent
+                        anchors.margins: -4
+                        anchors.leftMargin: -8
+                        anchors.rightMargin: -8
+
+                        radius: 12
+                        color: isDefault ? AmneziaStyle.color.bgSelected : AmneziaStyle.color.transparent
+                    }
+
+                    RowLayout {
+                        anchors.centerIn: parent
+
+                        spacing: 8
+
+                        Image {
+                            width: 20
+                            height: 15
+                            fillMode: Image.PreserveAspectFit
+                            source: ServersUiController.serverCountryCode(serverId) !== ""
+                                    ? "qrc:/countriesFlags/images/flagKit/" + ServersUiController.serverCountryCode(serverId) + ".svg"
+                                    : ""
+                            visible: ServersUiController.serverCountryCode(serverId) !== ""
+                        }
+
+                        BodyTextType {
+                            text: ServersUiController.serverCountryName(serverId)
+                            color: AmneziaStyle.color.textPrimary
+                            wrapMode: Text.NoWrap
+                        }
+                    }
+
+                    BodyTextType {
+                        anchors.right: parent.right
+                        anchors.rightMargin: 8
+                        anchors.verticalCenter: parent.verticalCenter
+
+                        text: root.pingText(serverId)
+                        color: AmneziaStyle.color.textTertiary
+                        wrapMode: Text.NoWrap
+                    }
+
+                    Rectangle {
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.bottom: parent.bottom
+                        anchors.leftMargin: -8
+                        anchors.rightMargin: -8
+
+                        height: 1
+                        color: AmneziaStyle.color.borderFaint
+
+                        visible: index < serverRepeater.count - 1
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+
+                        onClicked: {
+                            root.serversExpanded = false
+                            root.serverSelected(serverId)
+                        }
+                    }
+
+                    Component.onCompleted: {
+                        PingController.pingServer(serverId, ServersUiController.serverHostName(serverId), 443)
+                    }
+                }
             }
         }
     }

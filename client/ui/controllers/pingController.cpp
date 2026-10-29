@@ -29,20 +29,50 @@ PingController::PingController(QObject *parent)
     });
 }
 
-void PingController::ping(const QString &host, int port)
+int PingController::serverPingMs(const QString &serverId) const
 {
-    if (m_isPinging || host.isEmpty() || port <= 0) {
+    return m_serverPings.value(serverId, -1);
+}
+
+bool PingController::isServerPingPending(const QString &serverId) const
+{
+    return m_pendingServers.contains(serverId);
+}
+
+void PingController::pingServer(const QString &serverId, const QString &host, int port)
+{
+    if (serverId.isEmpty() || host.isEmpty() || port <= 0) {
         return;
     }
 
-    m_host = host;
-    m_port = port;
+    if (m_pendingServers.contains(serverId)) {
+        return;
+    }
+
+    m_pendingServers.insert(serverId);
+    m_queue.append({serverId, host, port});
+    ++m_revision;
+    emit pingUpdated();
+
+    if (!m_busy) {
+        QTimer::singleShot(0, this, [this]() { startNext(); });
+    }
+}
+
+void PingController::startNext()
+{
+    if (m_busy || m_queue.isEmpty()) {
+        return;
+    }
+
+    const Request request = m_queue.takeFirst();
+    m_currentId = request.serverId;
+    m_host = request.host;
+    m_port = request.port;
     m_samples.clear();
     m_attempt = 0;
-    m_isPinging = true;
-    m_pingMs = -1;
+    m_busy = true;
 
-    emit pingChanged();
     attempt();
 }
 
@@ -91,17 +121,27 @@ void PingController::scheduleNext()
 
 void PingController::finish()
 {
-    m_isPinging = false;
+    m_busy = false;
 
-    if (m_samples.isEmpty()) {
-        m_pingMs = -1;
-    } else {
-        int best = m_samples.first();
+    int best = -1;
+    if (!m_samples.isEmpty()) {
+        best = m_samples.first();
         for (int sample : m_samples) {
             best = qMin(best, sample);
         }
-        m_pingMs = best;
     }
 
-    emit pingChanged();
+    const QString finishedId = m_currentId;
+    m_currentId.clear();
+
+    if (!finishedId.isEmpty()) {
+        m_pendingServers.remove(finishedId);
+        m_serverPings.insert(finishedId, best);
+        ++m_revision;
+        emit pingUpdated();
+    }
+
+    if (!m_queue.isEmpty()) {
+        QTimer::singleShot(0, this, [this]() { startNext(); });
+    }
 }
