@@ -45,6 +45,16 @@ namespace
         return true;
     }
 
+    QString subscriptionIdentity(const QString &url)
+    {
+        const QUrl parsed(url.trimmed());
+        const QString path = parsed.path();
+        if (!path.isEmpty() && path != QStringLiteral("/")) {
+            return path;
+        }
+        return url.trimmed();
+    }
+
     ConfigTypes checkConfigFormat(const QString &config)
     {
         const QString openVpnConfigPatternCli = "client";
@@ -471,39 +481,71 @@ void ImportController::replaceConfig(const QString &serverId, const QJsonObject 
 
 void ImportController::replaceSubscriptionConfigs(const QString &subscriptionUrl, const QVector<QJsonObject> &configs)
 {
+    const QString identity = subscriptionIdentity(subscriptionUrl);
+    QVector<QString> existingIds;
     QHash<QString, QString> serverIdByHost;
 
     const QVector<QString> ids = m_serversRepository->orderedServerIds();
     for (const QString &id : ids) {
         const auto native = m_serversRepository->nativeConfig(id);
-        if (!native.has_value() || native->hostName.isEmpty()) {
+        if (!native.has_value() || subscriptionIdentity(native->subscriptionUrl) != identity) {
             continue;
         }
-        if (native->subscriptionUrl == subscriptionUrl) {
+        existingIds.append(id);
+        if (!native->hostName.isEmpty()) {
             serverIdByHost.insert(native->hostName, id);
         }
     }
 
-    for (const QJsonObject &config : configs) {
-        if (!serverConfigUtils::isConfigFormatVersionSupported(config)) {
+    QVector<int> unmatched;
+    QVector<QString> matchedIds;
+    for (int i = 0; i < configs.size(); ++i) {
+        if (!serverConfigUtils::isConfigFormatVersionSupported(configs.at(i))) {
             continue;
         }
-
-        const QString hostName = config.value(configKey::hostName).toString();
+        const QString hostName = configs.at(i).value(configKey::hostName).toString();
         const auto existingId = serverIdByHost.constFind(hostName);
-        if (existingId != serverIdByHost.constEnd()) {
-            QJsonObject updated = config;
-            const auto native = m_serversRepository->nativeConfig(*existingId);
-            if (native.has_value() && !native->description.isEmpty()) {
-                updated[configKey::description] = native->description;
-            }
-            m_serversRepository->editServer(*existingId, updated, serverConfigUtils::configTypeFromJson(updated));
+        if (existingId != serverIdByHost.constEnd() && !matchedIds.contains(*existingId)) {
+            matchedIds.append(*existingId);
+            applySubscriptionConfig(*existingId, configs.at(i));
         } else {
-            m_serversRepository->addServer(QString(), config, serverConfigUtils::configTypeFromJson(config));
+            unmatched.append(i);
         }
     }
 
+    QVector<QString> reusableIds;
+    for (const QString &id : existingIds) {
+        if (!matchedIds.contains(id)) {
+            reusableIds.append(id);
+        }
+    }
+
+    int reused = 0;
+    for (int index : unmatched) {
+        if (reused < reusableIds.size()) {
+            applySubscriptionConfig(reusableIds.at(reused), configs.at(index));
+            ++reused;
+        } else {
+            m_serversRepository->addServer(QString(), configs.at(index),
+                                           serverConfigUtils::configTypeFromJson(configs.at(index)));
+        }
+    }
+
+    for (int i = reused; i < reusableIds.size(); ++i) {
+        m_serversRepository->removeServer(reusableIds.at(i));
+    }
+
     emit importFinished();
+}
+
+void ImportController::applySubscriptionConfig(const QString &serverId, const QJsonObject &config)
+{
+    QJsonObject updated = config;
+    const auto native = m_serversRepository->nativeConfig(serverId);
+    if (native.has_value() && !native->description.isEmpty()) {
+        updated[configKey::description] = native->description;
+    }
+    m_serversRepository->editServer(serverId, updated, serverConfigUtils::configTypeFromJson(updated));
 }
 
 QJsonObject ImportController::processNativeWireGuardConfig(const QJsonObject &config)

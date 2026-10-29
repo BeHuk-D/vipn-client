@@ -75,6 +75,7 @@ signals:
     void restoreAppConfig(const QByteArray &data);
 
 private:
+    void applySubscriptionConfig(const QString &serverId, const QJsonObject &config);
     ConfigTypes checkConfigFormat(const QString &config) const;
     QJsonObject extractOpenVpnConfig(const QString &data) const;
     QJsonObject extractWireGuardConfig(const QString &data, ConfigTypes &configType) const;

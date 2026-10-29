@@ -25,6 +25,15 @@ ImportUiController* ImportUiController::mInstance = nullptr;
 static QMutex qrDecodeMutex;
 #endif
 
+static QString subscriptionUrlFromBody(const QString &data, const QString &fallback)
+{
+    static const QRegularExpression subscriptionMarker(
+            QStringLiteral("^#\\s*ViPN-Subscription-Url:\\s*(\\S+)\\s*$"),
+            QRegularExpression::MultilineOption);
+    const QRegularExpressionMatch match = subscriptionMarker.match(data);
+    return match.hasMatch() ? match.captured(1) : fallback;
+}
+
 ImportUiController::ImportUiController(ImportController* importController, SecureAppSettingsRepository* appSettingsRepository,
                                        QObject *parent)
     : QObject(parent),
@@ -155,9 +164,14 @@ bool ImportUiController::extractConfigFromUrl(const QString &url)
                              deviceInfo.toUtf8().toBase64(QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals));
     }
 
-    m_configUrlReply = amnApp->networkManager()->get(request);
+    QNetworkReply *reply = amnApp->networkManager()->get(request);
+    m_configUrlReply = reply;
     const QString normalizedUrl = parsed.toString();
-    connect(m_configUrlReply, &QNetworkReply::finished, this, [this, normalizedUrl]() {
+    connect(reply, &QNetworkReply::finished, this, [this, reply, normalizedUrl]() {
+        if (m_configUrlReply != reply) {
+            reply->deleteLater();
+            return;
+        }
         handleConfigUrlReply(normalizedUrl);
     });
 
@@ -228,6 +242,8 @@ void ImportUiController::handleConfigUrlReply(const QString &url)
         return;
     }
 
+    const QString canonicalUrl = subscriptionUrlFromBody(data, url);
+
     static const QRegularExpression entryMarker(
             QStringLiteral("^#\\s*ViPN-Expires-At:"), QRegularExpression::MultilineOption);
     QVector<int> entryStarts;
@@ -245,8 +261,8 @@ void ImportUiController::handleConfigUrlReply(const QString &url)
             if (piece.isEmpty()) {
                 continue;
             }
-            const QString prefixed = QStringLiteral("# ViPN-Subscription-Url: %1\n%2").arg(url, piece);
-            const auto result = m_importController->extractConfigFromData(prefixed);
+            const auto result = m_importController->extractConfigFromData(
+                    QStringLiteral("# ViPN-Subscription-Url: %1\n%2").arg(canonicalUrl, piece));
             if (result.errorCode == ErrorCode::NoError) {
                 configs.append(result.config);
             }
@@ -258,7 +274,7 @@ void ImportUiController::handleConfigUrlReply(const QString &url)
         }
 
         if (isRefresh) {
-            m_importController->replaceSubscriptionConfigs(url, configs);
+            m_importController->replaceSubscriptionConfigs(canonicalUrl, configs);
             m_config = {};
             m_configFileName.clear();
             m_maliciousWarningText.clear();
@@ -269,7 +285,7 @@ void ImportUiController::handleConfigUrlReply(const QString &url)
         }
 
         m_pendingConfigs = configs;
-        m_pendingSubscriptionUrl = url;
+        m_pendingSubscriptionUrl = canonicalUrl;
         m_config = {};
         m_configFileName.clear();
         m_maliciousWarningText.clear();
@@ -279,8 +295,7 @@ void ImportUiController::handleConfigUrlReply(const QString &url)
         return;
     }
 
-    const QString prefixed = QStringLiteral("# ViPN-Subscription-Url: %1\n%2").arg(url, data);
-    if (!extractConfigFromData(prefixed)) {
+    if (!extractConfigFromData(QStringLiteral("# ViPN-Subscription-Url: %1\n%2").arg(canonicalUrl, data))) {
         if (isRefresh) {
             emit subscriptionRefreshFinished(false);
         } else {
