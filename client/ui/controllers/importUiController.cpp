@@ -8,7 +8,9 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
+#include <QRegularExpression>
 #include <QUrl>
+#include <QUrlQuery>
 
 #include "amneziaApplication.h"
 #include "core/utils/deviceFingerprint.h"
@@ -41,6 +43,8 @@ ImportUiController::ImportUiController(ImportController* importController, Secur
 
 bool ImportUiController::extractConfigFromFile(const QString &fileName)
 {
+    m_pendingConfigs.clear();
+    m_pendingSubscriptionUrl.clear();
     QString data;
     if (!SystemController::readFile(fileName, data)) {
         emit importErrorOccurred(ErrorCode::ImportOpenConfigError, false);
@@ -72,6 +76,8 @@ bool ImportUiController::extractConfigFromFile(const QString &fileName)
 
 bool ImportUiController::extractConfigFromData(QString data)
 {
+    m_pendingConfigs.clear();
+    m_pendingSubscriptionUrl.clear();
     auto result = m_importController->extractConfigFromData(data);
     
     if (result.errorCode != ErrorCode::NoError) {
@@ -114,6 +120,8 @@ void ImportUiController::refreshSubscription(const QString &serverId, const QStr
 
 bool ImportUiController::extractConfigFromUrl(const QString &url)
 {
+    m_pendingConfigs.clear();
+    m_pendingSubscriptionUrl.clear();
     const QUrl parsed(url.trimmed());
     if (!parsed.isValid() || parsed.scheme() != QStringLiteral("https")) {
         emit importErrorOccurred(ErrorCode::ImportConfigUrlError, false);
@@ -126,7 +134,13 @@ bool ImportUiController::extractConfigFromUrl(const QString &url)
         previousReply->deleteLater();
     }
 
-    QNetworkRequest request(parsed);
+    QUrl requestUrl = parsed;
+    QUrlQuery query(requestUrl);
+    query.removeQueryItem(QStringLiteral("all"));
+    query.addQueryItem(QStringLiteral("all"), QStringLiteral("1"));
+    requestUrl.setQuery(query);
+
+    QNetworkRequest request(requestUrl);
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
     request.setTransferTimeout(15000);
     request.setRawHeader("Accept", "text/plain");
@@ -214,6 +228,57 @@ void ImportUiController::handleConfigUrlReply(const QString &url)
         return;
     }
 
+    static const QRegularExpression entryMarker(
+            QStringLiteral("^#\\s*ViPN-Expires-At:"), QRegularExpression::MultilineOption);
+    QVector<int> entryStarts;
+    auto matches = entryMarker.globalMatch(data);
+    while (matches.hasNext()) {
+        entryStarts.append(matches.next().capturedStart());
+    }
+
+    if (entryStarts.size() > 1) {
+        QVector<QJsonObject> configs;
+        for (int i = 0; i < entryStarts.size(); ++i) {
+            const int from = entryStarts.at(i);
+            const int to = (i + 1 < entryStarts.size()) ? entryStarts.at(i + 1) : data.size();
+            const QString piece = data.mid(from, to - from).trimmed();
+            if (piece.isEmpty()) {
+                continue;
+            }
+            const QString prefixed = QStringLiteral("# ViPN-Subscription-Url: %1\n%2").arg(url, piece);
+            const auto result = m_importController->extractConfigFromData(prefixed);
+            if (result.errorCode == ErrorCode::NoError) {
+                configs.append(result.config);
+            }
+        }
+
+        if (configs.isEmpty()) {
+            reportFailure();
+            return;
+        }
+
+        if (isRefresh) {
+            m_importController->replaceSubscriptionConfigs(url, configs);
+            m_config = {};
+            m_configFileName.clear();
+            m_maliciousWarningText.clear();
+            m_isNativeWireGuardConfig = false;
+            emit importConfigChanged();
+            emit subscriptionRefreshFinished(true);
+            return;
+        }
+
+        m_pendingConfigs = configs;
+        m_pendingSubscriptionUrl = url;
+        m_config = {};
+        m_configFileName.clear();
+        m_maliciousWarningText.clear();
+        m_isNativeWireGuardConfig = false;
+        emit importConfigChanged();
+        emit configUrlFetchFinished(true);
+        return;
+    }
+
     const QString prefixed = QStringLiteral("# ViPN-Subscription-Url: %1\n%2").arg(url, data);
     if (!extractConfigFromData(prefixed)) {
         if (isRefresh) {
@@ -240,6 +305,8 @@ void ImportUiController::handleConfigUrlReply(const QString &url)
 
 bool ImportUiController::extractConfigFromQr(const QByteArray &data)
 {
+    m_pendingConfigs.clear();
+    m_pendingSubscriptionUrl.clear();
     auto result = m_importController->extractConfigFromQr(data);
     
     if (result.errorCode != ErrorCode::NoError) {
@@ -284,8 +351,14 @@ void ImportUiController::processNativeWireGuardConfig()
 
 void ImportUiController::importConfig()
 {
-    m_importController->importConfig(m_config);
-    
+    if (!m_pendingConfigs.isEmpty()) {
+        m_importController->replaceSubscriptionConfigs(m_pendingSubscriptionUrl, m_pendingConfigs);
+        m_pendingConfigs.clear();
+        m_pendingSubscriptionUrl.clear();
+    } else {
+        m_importController->importConfig(m_config);
+    }
+
     m_config = {};
     m_configFileName.clear();
     m_maliciousWarningText.clear();

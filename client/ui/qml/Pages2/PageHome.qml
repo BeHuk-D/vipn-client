@@ -165,6 +165,37 @@ PageType {
             onClicked: root.measurePing()
         }
 
+        RowLayout {
+            Layout.alignment: Qt.AlignHCenter
+            Layout.fillWidth: true
+            Layout.bottomMargin: 12
+
+            visible: ServersUiController.getServersCount() > 1
+
+            spacing: 8
+
+            Repeater {
+                model: ServersModel
+
+                delegate: ButtonType {
+                    readonly property bool current: isDefault
+
+                    size: ButtonType.Medium
+                    variant: current ? ButtonType.Primary : ButtonType.Secondary
+
+                    text: ServersUiController.serverCountryName(serverId)
+
+                    onClicked: {
+                        if (ConnectionController.isConnected) {
+                            PageController.showNotificationMessage(qsTr("Disconnect before switching server"))
+                            return
+                        }
+                        ServersUiController.setDefaultServer(serverId)
+                    }
+                }
+            }
+        }
+
         SubscriptionCard {
             Layout.fillWidth: true
 
@@ -188,6 +219,16 @@ PageType {
         target: ConnectionController
 
         function onConnectionStateChanged() {
+            if (root.hasSubscription) {
+                Qt.callLater(root.measurePing)
+            }
+        }
+    }
+
+    Connections {
+        target: ServersUiController
+
+        function onDefaultServerIdChanged() {
             if (root.hasSubscription) {
                 Qt.callLater(root.measurePing)
             }

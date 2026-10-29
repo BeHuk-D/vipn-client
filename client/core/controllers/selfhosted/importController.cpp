@@ -469,6 +469,43 @@ void ImportController::replaceConfig(const QString &serverId, const QJsonObject 
     emit importFinished();
 }
 
+void ImportController::replaceSubscriptionConfigs(const QString &subscriptionUrl, const QVector<QJsonObject> &configs)
+{
+    QHash<QString, QString> serverIdByHost;
+
+    const QVector<QString> ids = m_serversRepository->orderedServerIds();
+    for (const QString &id : ids) {
+        const auto native = m_serversRepository->nativeConfig(id);
+        if (!native.has_value() || native->hostName.isEmpty()) {
+            continue;
+        }
+        if (native->subscriptionUrl == subscriptionUrl) {
+            serverIdByHost.insert(native->hostName, id);
+        }
+    }
+
+    for (const QJsonObject &config : configs) {
+        if (!serverConfigUtils::isConfigFormatVersionSupported(config)) {
+            continue;
+        }
+
+        const QString hostName = config.value(configKey::hostName).toString();
+        const auto existingId = serverIdByHost.constFind(hostName);
+        if (existingId != serverIdByHost.constEnd()) {
+            QJsonObject updated = config;
+            const auto native = m_serversRepository->nativeConfig(*existingId);
+            if (native.has_value() && !native->description.isEmpty()) {
+                updated[configKey::description] = native->description;
+            }
+            m_serversRepository->editServer(*existingId, updated, serverConfigUtils::configTypeFromJson(updated));
+        } else {
+            m_serversRepository->addServer(QString(), config, serverConfigUtils::configTypeFromJson(config));
+        }
+    }
+
+    emit importFinished();
+}
+
 QJsonObject ImportController::processNativeWireGuardConfig(const QJsonObject &config)
 {
     QJsonObject result = config;

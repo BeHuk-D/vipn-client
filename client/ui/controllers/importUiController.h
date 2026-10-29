@@ -78,6 +78,8 @@ private:
     QString m_refreshServerId;
 
     QJsonObject m_config;
+    QVector<QJsonObject> m_pendingConfigs;
+    QString m_pendingSubscriptionUrl;
     QString m_configFileName;
     QString m_maliciousWarningText;
     bool m_isNativeWireGuardConfig;

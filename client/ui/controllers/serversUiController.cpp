@@ -203,13 +203,9 @@ QString ServersUiController::getDefaultServerDns() const
     return config ? config->dns1 : QString();
 }
 
-QString ServersUiController::getDefaultServerCountryCode() const
-{
-    const auto config = m_serversController->nativeConfig(getDefaultServerId());
-    return config ? config->subscriptionCountry.toUpper() : QString();
-}
+namespace {
 
-QString ServersUiController::getDefaultServerCountryName() const
+QString countryDisplayName(const QString &code, bool isRussian)
 {
     static const QHash<QString, QPair<QString, QString>> countries = {
         { QStringLiteral("RU"), { QStringLiteral("Россия"), QStringLiteral("Russia") } },
@@ -238,18 +234,45 @@ QString ServersUiController::getDefaultServerCountryName() const
         { QStringLiteral("HK"), { QStringLiteral("Гонконг"), QStringLiteral("Hong Kong") } },
     };
 
-    const QString code = getDefaultServerCountryCode();
-    if (code.isEmpty()) {
-        return {};
-    }
-
-    const bool isRussian = m_settingsController->getAppLanguage().language() == QLocale::Russian;
     const auto it = countries.constFind(code);
     if (it != countries.constEnd()) {
         return isRussian ? it->first : it->second;
     }
 
     return QLocale::territoryToString(QLocale::codeToTerritory(code));
+}
+
+}
+
+QString ServersUiController::getDefaultServerCountryCode() const
+{
+    return serverCountryCode(getDefaultServerId());
+}
+
+QString ServersUiController::serverCountryCode(const QString &serverId) const
+{
+    const auto config = m_serversController->nativeConfig(serverId);
+    return config ? config->subscriptionCountry.toUpper() : QString();
+}
+
+QString ServersUiController::serverCountryName(const QString &serverId) const
+{
+    const QString code = serverCountryCode(serverId);
+    if (code.isEmpty()) {
+        return serverName(serverId);
+    }
+
+    return countryDisplayName(code, m_settingsController->getAppLanguage().language() == QLocale::Russian);
+}
+
+QString ServersUiController::getDefaultServerCountryName() const
+{
+    const QString code = getDefaultServerCountryCode();
+    if (code.isEmpty()) {
+        return {};
+    }
+
+    return countryDisplayName(code, m_settingsController->getAppLanguage().language() == QLocale::Russian);
 }
 
 QString ServersUiController::getDefaultServerSubscriptionExpiresAt() const

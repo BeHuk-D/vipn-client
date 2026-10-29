@@ -95,6 +95,8 @@ public slots:
 
     QString serverName(const QString &serverId) const;
     QString serverHostName(const QString &serverId) const;
+    QString serverCountryCode(const QString &serverId) const;
+    QString serverCountryName(const QString &serverId) const;
     int serverDefaultContainer(const QString &serverId) const;
     bool isServerFromApi(const QString &serverId) const;
     bool isServerCountrySelectionAvailable(const QString &serverId) const;

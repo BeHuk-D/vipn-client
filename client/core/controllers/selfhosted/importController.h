@@ -66,6 +66,7 @@ public:
 
     void importConfig(const QJsonObject &config);
     void replaceConfig(const QString &serverId, const QJsonObject &config);
+    void replaceSubscriptionConfigs(const QString &subscriptionUrl, const QVector<QJsonObject> &configs);
     QJsonObject processNativeWireGuardConfig(const QJsonObject &config);
 
 signals:
