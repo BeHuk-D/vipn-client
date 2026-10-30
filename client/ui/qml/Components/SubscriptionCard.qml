@@ -19,7 +19,9 @@ Rectangle {
     property bool isRefreshing: false
 
     property bool serversExpanded: false
+    property int modelRevision: 0
     readonly property bool canSwitchServer: {
+        const revision = root.modelRevision
         const serverId = ServersUiController.defaultServerId
         return serverId !== "" && ServersUiController.subscriptionServersCount() > 1
     }
@@ -220,6 +222,14 @@ Rectangle {
 
                 onClicked: root.replaceRequested()
             }
+        }
+    }
+
+    Connections {
+        target: ServersModel
+
+        function onModelReset() {
+            root.modelRevision++
         }
     }
 
