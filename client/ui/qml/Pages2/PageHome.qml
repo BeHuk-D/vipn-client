@@ -20,6 +20,20 @@ PageType {
     readonly property string subscriptionUrl: ServersUiController.defaultServerSubscriptionUrl
     readonly property string expiresAt: ServersUiController.defaultServerSubscriptionExpiresAt
     readonly property bool hasSubscription: ServersUiController.getServersCount() > 0
+    readonly property bool pingPending: {
+        const revision = PingController.revision
+        if (revision < 0 || ServersUiController.defaultServerId === "") {
+            return false
+        }
+        return PingController.isServerPingPending(ServersUiController.defaultServerId)
+    }
+    readonly property int pingMs: {
+        const revision = PingController.revision
+        if (revision < 0 || ServersUiController.defaultServerId === "") {
+            return -1
+        }
+        return PingController.serverPingMs(ServersUiController.defaultServerId)
+    }
 
     function formatExpiry(value) {
         if (!value) {
@@ -147,6 +161,26 @@ PageType {
                 width: Math.min(implicitWidth, parent.width, parent.height)
                 height: width
             }
+        }
+
+        ButtonType {
+            Layout.alignment: Qt.AlignHCenter
+            Layout.bottomMargin: 12
+
+            visible: root.hasSubscription
+
+            variant: ButtonType.Text
+            size: ButtonType.Medium
+
+            enabled: !root.pingPending
+
+            text: root.pingPending
+                  ? qsTr("Measuring…")
+                  : (root.pingMs >= 0
+                     ? qsTr("Ping %1 ms").arg(root.pingMs)
+                     : qsTr("Check ping"))
+
+            onClicked: root.measurePing()
         }
 
         SubscriptionCard {

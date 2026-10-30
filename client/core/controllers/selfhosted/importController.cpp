@@ -10,6 +10,7 @@
 #include <QRegularExpression>
 #include <QRegularExpressionMatch>
 #include <QRegularExpressionMatchIterator>
+#include <QSet>
 #include <QUrl>
 #include <algorithm>
 
@@ -484,11 +485,18 @@ void ImportController::replaceSubscriptionConfigs(const QString &subscriptionUrl
     const QString identity = subscriptionIdentity(subscriptionUrl);
     QVector<QString> existingIds;
     QHash<QString, QString> serverIdByHost;
+    QHash<QString, QString> anyServerIdByHost;
 
     const QVector<QString> ids = m_serversRepository->orderedServerIds();
     for (const QString &id : ids) {
         const auto native = m_serversRepository->nativeConfig(id);
-        if (!native.has_value() || subscriptionIdentity(native->subscriptionUrl) != identity) {
+        if (!native.has_value()) {
+            continue;
+        }
+        if (!native->hostName.isEmpty()) {
+            anyServerIdByHost.insert(native->hostName, id);
+        }
+        if (subscriptionIdentity(native->subscriptionUrl) != identity) {
             continue;
         }
         existingIds.append(id);
@@ -499,15 +507,25 @@ void ImportController::replaceSubscriptionConfigs(const QString &subscriptionUrl
 
     QVector<int> unmatched;
     QVector<QString> matchedIds;
+    QSet<QString> handledHosts;
     for (int i = 0; i < configs.size(); ++i) {
         if (!serverConfigUtils::isConfigFormatVersionSupported(configs.at(i))) {
             continue;
         }
         const QString hostName = configs.at(i).value(configKey::hostName).toString();
-        const auto existingId = serverIdByHost.constFind(hostName);
-        if (existingId != serverIdByHost.constEnd() && !matchedIds.contains(*existingId)) {
-            matchedIds.append(*existingId);
-            applySubscriptionConfig(*existingId, configs.at(i));
+        if (hostName.isEmpty()) {
+            unmatched.append(i);
+            continue;
+        }
+        handledHosts.insert(hostName);
+
+        QString existingId = serverIdByHost.value(hostName);
+        if (existingId.isEmpty() || matchedIds.contains(existingId)) {
+            existingId = anyServerIdByHost.value(hostName);
+        }
+        if (!existingId.isEmpty() && !matchedIds.contains(existingId)) {
+            matchedIds.append(existingId);
+            applySubscriptionConfig(existingId, configs.at(i));
         } else {
             unmatched.append(i);
         }
@@ -526,13 +544,25 @@ void ImportController::replaceSubscriptionConfigs(const QString &subscriptionUrl
             applySubscriptionConfig(reusableIds.at(reused), configs.at(index));
             ++reused;
         } else {
-            m_serversRepository->addServer(QString(), configs.at(index),
-                                           serverConfigUtils::configTypeFromJson(configs.at(index)));
+            const QString addedId = m_serversRepository->addServer(
+                    QString(), configs.at(index), serverConfigUtils::configTypeFromJson(configs.at(index)));
+            matchedIds.append(addedId);
         }
     }
 
     for (int i = reused; i < reusableIds.size(); ++i) {
         m_serversRepository->removeServer(reusableIds.at(i));
+    }
+
+    const QVector<QString> remainingIds = m_serversRepository->orderedServerIds();
+    for (const QString &id : remainingIds) {
+        if (matchedIds.contains(id)) {
+            continue;
+        }
+        const auto native = m_serversRepository->nativeConfig(id);
+        if (native.has_value() && handledHosts.contains(native->hostName)) {
+            m_serversRepository->removeServer(id);
+        }
     }
 
     emit importFinished();

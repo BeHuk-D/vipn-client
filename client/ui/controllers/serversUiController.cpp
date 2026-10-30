@@ -2,6 +2,7 @@
 
 #include <QHash>
 #include <QLocale>
+#include <QUrl>
 
 #include "core/utils/api/apiUtils.h"
 #include "core/utils/containerEnum.h"
@@ -242,6 +243,39 @@ QString countryDisplayName(const QString &code, bool isRussian)
     return QLocale::territoryToString(QLocale::codeToTerritory(code));
 }
 
+QString subscriptionIdentity(const QString &url)
+{
+    const QUrl parsed(url.trimmed());
+    const QString path = parsed.path();
+    if (!path.isEmpty() && path != QStringLiteral("/")) {
+        return path;
+    }
+    return url.trimmed();
+}
+
+}
+
+QString ServersUiController::subscriptionServerIdentity(const QString &serverId) const
+{
+    const auto config = m_serversController->nativeConfig(serverId);
+    return config.has_value() ? subscriptionIdentity(config->subscriptionUrl) : QString();
+}
+
+bool ServersUiController::isSameSubscription(const QString &serverId) const
+{
+    return subscriptionServerIdentity(serverId) == subscriptionServerIdentity(getDefaultServerId());
+}
+
+int ServersUiController::subscriptionServersCount() const
+{
+    const int count = getServersCount();
+    int result = 0;
+    for (int i = 0; i < count; ++i) {
+        if (isSameSubscription(getServerId(i))) {
+            ++result;
+        }
+    }
+    return result;
 }
 
 QString ServersUiController::getDefaultServerCountryCode() const

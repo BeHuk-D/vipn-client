@@ -126,6 +126,9 @@ public slots:
     QString getServerId(int index) const;
     int getServerIndexById(const QString &serverId) const;
     int getServersCount() const;
+
+    Q_INVOKABLE bool isSameSubscription(const QString &serverId) const;
+    Q_INVOKABLE int subscriptionServersCount() const;
     QStringList getAllInstalledServicesName(int serverIndex) const;
 
 signals:
@@ -145,6 +148,7 @@ private:
     const ServerDescription &processedServerDescription() const;
     int serverIndexForId(const QString &serverId) const;
     bool listHasServersFromGatewayApi() const;
+    QString subscriptionServerIdentity(const QString &serverId) const;
 
     void updateContainersModel();
     void updateDefaultServerContainersModel();

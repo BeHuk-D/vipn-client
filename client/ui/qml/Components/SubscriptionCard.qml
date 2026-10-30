@@ -19,7 +19,10 @@ Rectangle {
     property bool isRefreshing: false
 
     property bool serversExpanded: false
-    readonly property bool canSwitchServer: ServersUiController.getServersCount() > 1
+    readonly property bool canSwitchServer: {
+        const serverId = ServersUiController.defaultServerId
+        return serverId !== "" && ServersUiController.subscriptionServersCount() > 1
+    }
     readonly property int pingRevision: PingController.revision
 
     signal refreshRequested()
@@ -69,7 +72,14 @@ Rectangle {
 
         Item {
             Layout.fillWidth: true
-            implicitHeight: 28
+            implicitHeight: 36
+
+            Rectangle {
+                anchors.fill: parent
+                radius: 10
+                color: AmneziaStyle.color.bgStateLayer
+                visible: root.canSwitchServer && headerMouse.containsMouse
+            }
 
             RowLayout {
                 anchors.centerIn: parent
@@ -101,14 +111,6 @@ Rectangle {
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
 
-                spacing: 6
-
-                BodyTextType {
-                    text: root.pingText(ServersUiController.defaultServerId)
-                    color: AmneziaStyle.color.textTertiary
-                    wrapMode: Text.NoWrap
-                }
-
                 Image {
                     width: 16
                     height: 16
@@ -128,7 +130,11 @@ Rectangle {
             }
 
             MouseArea {
+                id: headerMouse
+
                 anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: root.canSwitchServer ? Qt.PointingHandCursor : Qt.ArrowCursor
 
                 onClicked: {
                     if (root.canSwitchServer) {
@@ -234,14 +240,13 @@ Rectangle {
                     Layout.fillWidth: true
                     implicitHeight: 44
 
+                    visible: !isDefault && ServersUiController.isSameSubscription(serverId)
+
                     Rectangle {
                         anchors.fill: parent
-                        anchors.margins: -4
-                        anchors.leftMargin: -8
-                        anchors.rightMargin: -8
-
-                        radius: 12
-                        color: isDefault ? AmneziaStyle.color.bgSelected : AmneziaStyle.color.transparent
+                        radius: 10
+                        color: AmneziaStyle.color.bgStateLayer
+                        visible: rowMouse.containsMouse
                     }
 
                     RowLayout {
@@ -276,21 +281,12 @@ Rectangle {
                         wrapMode: Text.NoWrap
                     }
 
-                    Rectangle {
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        anchors.bottom: parent.bottom
-                        anchors.leftMargin: -8
-                        anchors.rightMargin: -8
-
-                        height: 1
-                        color: AmneziaStyle.color.borderFaint
-
-                        visible: index < serverRepeater.count - 1
-                    }
-
                     MouseArea {
+                        id: rowMouse
+
                         anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
 
                         onClicked: {
                             root.serversExpanded = false
@@ -299,7 +295,9 @@ Rectangle {
                     }
 
                     Component.onCompleted: {
-                        PingController.pingServer(serverId, ServersUiController.serverHostName(serverId), 443)
+                        if (serverRow.visible) {
+                            PingController.pingServer(serverId, ServersUiController.serverHostName(serverId), 443)
+                        }
                     }
                 }
             }
