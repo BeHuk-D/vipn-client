@@ -259,6 +259,7 @@ void ImportUiController::handleConfigUrlReply(const QString &url)
     constexpr int httpStatusForbidden = 403;
     constexpr int httpStatusNotFound = 404;
     constexpr int httpStatusConflict = 409;
+    constexpr int httpStatusTooManyRequests = 429;
 
     QNetworkReply *reply = m_configUrlReply;
     m_configUrlReply = nullptr;
@@ -276,7 +277,8 @@ void ImportUiController::handleConfigUrlReply(const QString &url)
     m_refreshServerId.clear();
     emit configUrlFetchChanged();
 
-    const bool transportFailure = statusCode == 0 || statusCode >= 500;
+    const bool transportFailure =
+            statusCode == 0 || statusCode == httpStatusTooManyRequests || statusCode >= 500;
     if (hasReplyError && transportFailure) {
         if (isRefresh) {
             m_refreshServerId = refreshServerId;
