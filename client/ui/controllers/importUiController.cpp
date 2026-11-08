@@ -42,6 +42,31 @@ static const QString kPinnedSubscriptionHost = QStringLiteral("31.59.125.46");
 static const QByteArray kPinnedSubscriptionCertSha256 =
         QByteArray::fromHex("366669dad9cced363ab7dc73ef28f83feb3446cd7823355a216d7b430c7d7f3f");
 
+static QStringList mirrorHostsFromUrl(const QUrl &url)
+{
+    QStringList hosts;
+    const QString value =
+            QUrlQuery(url).queryItemValue(QStringLiteral("m"), QUrl::FullyDecoded);
+    for (const QString &entry : value.split(QLatin1Char(','), Qt::SkipEmptyParts)) {
+        const QString host = entry.trimmed();
+        if (host.isEmpty()) {
+            continue;
+        }
+        const QUrl origin(QStringLiteral("https://") + host);
+        if (!origin.isValid() || origin.host().isEmpty() || !origin.userInfo().isEmpty()
+            || origin.port() != -1 || (origin.path().size() > 1)) {
+            continue;
+        }
+        if (!hosts.contains(host, Qt::CaseInsensitive)) {
+            hosts.append(host);
+        }
+        if (hosts.size() >= 8) {
+            break;
+        }
+    }
+    return hosts;
+}
+
 static QStringList subscriptionCandidateUrls(const QString &url)
 {
     static const QStringList bases = {
@@ -56,12 +81,21 @@ static QStringList subscriptionCandidateUrls(const QString &url)
         return candidates;
     }
     candidates.append(parsed.toString());
+
+    QStringList hosts;
+    hosts.append(parsed.host());
+    hosts.append(mirrorHostsFromUrl(parsed));
     for (const QString &base : bases) {
-        const QUrl origin(base);
-        if (origin.host().compare(parsed.host(), Qt::CaseInsensitive) == 0) {
+        hosts.append(QUrl(base).host());
+    }
+
+    QStringList seen;
+    for (const QString &host : hosts) {
+        if (host.isEmpty() || seen.contains(host, Qt::CaseInsensitive)) {
             continue;
         }
-        QUrl alternative = origin;
+        seen.append(host);
+        QUrl alternative(QStringLiteral("https://") + host);
         alternative.setPath(parsed.path());
         alternative.setQuery(parsed.query());
         const QString candidate = alternative.toString();
