@@ -1,5 +1,6 @@
 #include "importUiController.h"
 
+#include <QCryptographicHash>
 #include <QDebug>
 #include <QFile>
 #include <QFileInfo>
@@ -9,6 +10,9 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QRegularExpression>
+#include <QSslCertificate>
+#include <QSslConfiguration>
+#include <QSslError>
 #include <QUrl>
 #include <QUrlQuery>
 
@@ -34,11 +38,16 @@ static QString subscriptionUrlFromBody(const QString &data, const QString &fallb
     return match.hasMatch() ? match.captured(1) : fallback;
 }
 
+static const QString kPinnedSubscriptionHost = QStringLiteral("31.59.125.46");
+static const QByteArray kPinnedSubscriptionCertSha256 =
+        QByteArray::fromHex("366669dad9cced363ab7dc73ef28f83feb3446cd7823355a216d7b430c7d7f3f");
+
 static QStringList subscriptionCandidateUrls(const QString &url)
 {
     static const QStringList bases = {
         QStringLiteral("https://vipn-connect.space"),
         QStringLiteral("https://vipn-web.vipn-net.workers.dev"),
+        QStringLiteral("https://31.59.125.46"),
     };
 
     QStringList candidates;
@@ -214,6 +223,17 @@ bool ImportUiController::startConfigFetch(const QString &url)
 
     QNetworkReply *reply = amnApp->networkManager()->get(request);
     m_configUrlReply = reply;
+    const QString requestHost = requestUrl.host();
+    connect(reply, &QNetworkReply::sslErrors, reply, [reply, requestHost](const QList<QSslError> &) {
+        if (requestHost.compare(kPinnedSubscriptionHost, Qt::CaseInsensitive) != 0) {
+            return;
+        }
+        const QSslCertificate certificate = reply->sslConfiguration().peerCertificate();
+        if (!certificate.isNull()
+            && certificate.digest(QCryptographicHash::Sha256) == kPinnedSubscriptionCertSha256) {
+            reply->ignoreSslErrors();
+        }
+    });
     const QString normalizedUrl = parsed.toString();
     connect(reply, &QNetworkReply::finished, this, [this, reply, normalizedUrl]() {
         if (m_configUrlReply != reply) {
