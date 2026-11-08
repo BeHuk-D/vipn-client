@@ -34,6 +34,35 @@ static QString subscriptionUrlFromBody(const QString &data, const QString &fallb
     return match.hasMatch() ? match.captured(1) : fallback;
 }
 
+static QStringList subscriptionCandidateUrls(const QString &url)
+{
+    static const QStringList bases = {
+        QStringLiteral("https://vipn-connect.space"),
+        QStringLiteral("https://vipn-web.kadancevdmitrij15.workers.dev"),
+    };
+
+    QStringList candidates;
+    const QUrl parsed(url.trimmed());
+    if (!parsed.isValid() || parsed.scheme() != QStringLiteral("https")) {
+        return candidates;
+    }
+    candidates.append(parsed.toString());
+    for (const QString &base : bases) {
+        const QUrl origin(base);
+        if (origin.host().compare(parsed.host(), Qt::CaseInsensitive) == 0) {
+            continue;
+        }
+        QUrl alternative = origin;
+        alternative.setPath(parsed.path());
+        alternative.setQuery(parsed.query());
+        const QString candidate = alternative.toString();
+        if (!candidates.contains(candidate)) {
+            candidates.append(candidate);
+        }
+    }
+    return candidates;
+}
+
 ImportUiController::ImportUiController(ImportController* importController, SecureAppSettingsRepository* appSettingsRepository,
                                        QObject *parent)
     : QObject(parent),
@@ -129,6 +158,25 @@ void ImportUiController::refreshSubscription(const QString &serverId, const QStr
 
 bool ImportUiController::extractConfigFromUrl(const QString &url)
 {
+    m_urlCandidates = subscriptionCandidateUrls(url);
+    m_urlCandidate = 0;
+    if (m_urlCandidates.isEmpty()) {
+        m_urlCandidates.append(url.trimmed());
+    }
+    return startConfigFetch(m_urlCandidates.first());
+}
+
+bool ImportUiController::retryNextCandidate()
+{
+    if (m_urlCandidate + 1 >= m_urlCandidates.size()) {
+        return false;
+    }
+    ++m_urlCandidate;
+    return startConfigFetch(m_urlCandidates.at(m_urlCandidate));
+}
+
+bool ImportUiController::startConfigFetch(const QString &url)
+{
     m_pendingConfigs.clear();
     m_pendingSubscriptionUrl.clear();
     const QUrl parsed(url.trimmed());
@@ -207,6 +255,17 @@ void ImportUiController::handleConfigUrlReply(const QString &url)
     const QString refreshServerId = m_refreshServerId;
     m_refreshServerId.clear();
     emit configUrlFetchChanged();
+
+    const bool transportFailure = statusCode == 0 || statusCode >= 500;
+    if (hasReplyError && transportFailure) {
+        if (isRefresh) {
+            m_refreshServerId = refreshServerId;
+        }
+        if (retryNextCandidate()) {
+            return;
+        }
+        m_refreshServerId.clear();
+    }
 
     const auto reportFailure = [this, isRefresh]() {
         if (isRefresh) {

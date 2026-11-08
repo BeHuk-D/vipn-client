@@ -2,6 +2,7 @@
 #define IMPORTUICONTROLLER_H
 
 #include <QObject>
+#include <QStringList>
 
 #include "core/controllers/selfhosted/importController.h"
 
@@ -70,12 +71,16 @@ private:
 #endif
 
     void handleConfigUrlReply(const QString &url);
+    bool startConfigFetch(const QString &url);
+    bool retryNextCandidate();
     void failConfigUrlFetch();
 
     ImportController* m_importController;
     SecureAppSettingsRepository* m_appSettingsRepository;
     QNetworkReply* m_configUrlReply = nullptr;
     QString m_refreshServerId;
+    QStringList m_urlCandidates;
+    int m_urlCandidate = 0;
 
     QJsonObject m_config;
     QVector<QJsonObject> m_pendingConfigs;
