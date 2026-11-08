@@ -9,7 +9,7 @@ Cloudflare Worker), `vipn-client` (Qt/QML), `vipn-infra` (bash, systemd, кон�
 
 | Роль | IP | ОС | Что запущено |
 | --- | --- | --- | --- |
-| Панель | `31.59.125.46` | Ubuntu 22.04, 1 vCPU, 1 ГБ | `vipn-panel`, `cloudflared`, `wg0` (10.99.0.1/24), `vipn-backup.timer` |
+| Панель | `31.59.125.46` | Ubuntu 22.04, 1 vCPU, 1 ГБ | `vipn-panel`, `cloudflared`, `vipn-ip-tls`, `wg0` (10.99.0.1/24), `vipn-backup.timer` |
 | NL-1 | `80.74.28.114` | Ubuntu 24.04 | `awg1` (VPN, UDP 51820), `wg0` (10.99.0.2), `vipn-agent` |
 | Server-1 (DE) | `217.60.94.172` | Ubuntu 22.04 | `awg1` (VPN, UDP 51820), `wg0` (10.99.0.3), `vipn-agent` |
 
@@ -18,7 +18,11 @@ PANEL:
   `10.99.0.1:8082` (agent). Админка наружу не публикуется.
 - `cloudflared` (именованный туннель `vipn`, id `f6056b42-347d-4017-9473-2c97417e699c`)
   проксирует `api.vipn-connect.space` → `127.0.0.1:8080`, остальное — 404.
-- ufw: SSH; `51820/udp` только с IP узлов; `8082/tcp` только из `10.99.0.0/24`.
+- `vipn-ip-tls` (Caddy) слушает `31.59.125.46:443` с самоподписанным сертификатом
+  и проксирует только `/s/*`, `/r/*`, `/health` в `127.0.0.1:8080`. Отпечаток
+  сертификата зашит в клиент. Это канал подписки без домена и Cloudflare.
+- ufw: SSH; `443/tcp` публично; `51820/udp` только с IP узлов; `8082/tcp` только
+  из `10.99.0.0/24`.
 - БД: `/var/lib/vipn/vipn.db` (владелец `vipn:vipn`, 600), env: `/etc/vipn/panel.env`.
 
 УЗЛЫ:
@@ -42,6 +46,10 @@ DNS и Cloudflare: зона `vipn-connect.space`. Apex и `www` — Worker `vipn
 ## Секреты
 
 - `/etc/vipn/panel.env`, `/etc/vipn/agent.env` — 600 root.
+- `/etc/vipn/ingress.env` — только `VIPN_INGRESS_SECRET` для Caddy, 600 root;
+  создаётся из `panel.env`.
+- `/etc/caddy/ip-tls/{cert,key}.pem` — TLS IP-канала; ключ `0640 root:caddy`.
+  Замена сертификата ломает пиннинг в установленных клиентах.
 - `/etc/vipn/backup-age.key` — приватный ключ расшифровки бэкапов; офсайт-копия
   `~/.config/vipn/backup-age.key` на рабочей машине. Потеря ключа = потеря бэкапов.
 - `/root/.ssh/vipn-backup` — ключ панели для копирования бэкапов на узлы.
@@ -52,7 +60,8 @@ DNS и Cloudflare: зона `vipn-connect.space`. Apex и `www` — Worker `vipn
 
 `vipn-backup.timer` (03:30 UTC, Persistent) → `/usr/local/bin/vipn-backup`:
 снимок SQLite + `PRAGMA integrity_check`, архив с `vipn.db`, `panel.env`,
-`wg0.conf`, конфигом и credentials туннеля, шифрование `age` публичным ключом,
+`wg0.conf`, конфигом и credentials туннеля, сертификатом и ключом IP-канала,
+шифрование `age` публичным ключом,
 копии на панель и на каждый узел из `/etc/vipn/backup-targets` по SSH через
 `wg0`, проверка sha256, ретеншен 14 дней. Восстановление описано в
 `vipn-infra/README.md`.
@@ -61,6 +70,8 @@ DNS и Cloudflare: зона `vipn-connect.space`. Apex и `www` — Worker `vipn
 
 - `/r/<public_id>` → 307 на `/s/<token>`; обязателен заголовок `x-vipn-hwid`
   ровно из 64 hex-символов.
+- Канал без домена: `https://31.59.125.46/s/<token>` с пиннингом сертификата в
+  клиенте; клиент перебирает домен → `workers.dev` → IP.
 - Оба узла используют подсеть `10.66.66.0/24`, адреса выдаются по узлам
   (`?all=1` создаёт устройство на каждом). При росте — переход на /16.
 - Метрики агент шлёт каждые 10 секунд; панель пишет `metrics` и обновляет
