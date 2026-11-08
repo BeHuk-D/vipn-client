@@ -1,0 +1,17 @@
+[Unit]
+Description=Mirror the latest ViPN client release from GitHub
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/flock -n -E 75 /run/vipn-releases/sync.lock /usr/local/bin/vipn-sync-releases
+SuccessExitStatus=75
+TimeoutStartSec=0
+EnvironmentFile=-/etc/vipn/releases.env
+RuntimeDirectory=vipn-releases
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/www/vipn-downloads /var/lib/vipn/releases

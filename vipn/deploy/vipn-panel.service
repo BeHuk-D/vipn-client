@@ -1,0 +1,23 @@
+[Unit]
+Description=ViPN control panel
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=vipn
+Group=vipn
+EnvironmentFile=/etc/vipn/panel.env
+ExecStart=/opt/vipn/vipn-panel
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ReadWritePaths=/var/lib/vipn
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

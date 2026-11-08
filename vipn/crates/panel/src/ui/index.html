@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>ViPN — панель управления</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23fff'/%3E%3Ctext x='16' y='23' font-family='system-ui' font-size='20' font-weight='700' text-anchor='middle' fill='%23000'%3EV%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <section id="login-screen" class="screen centered">
+    <form id="login-form" class="card login-card">
+      <div class="logo">V</div>
+      <h1>ViPN</h1>
+      <p class="muted">Панель управления доступом</p>
+      <label>Email
+        <input name="email" type="email" autocomplete="username" required>
+      </label>
+      <label>Пароль
+        <input name="password" type="password" autocomplete="current-password" required>
+      </label>
+      <button type="submit" class="primary">Войти</button>
+      <p id="login-error" class="error"></p>
+    </form>
+  </section>
+
+  <section id="app-screen" class="screen hidden">
+    <header class="topbar">
+      <div class="brand"><span class="logo small">V</span> ViPN</div>
+      <nav id="tabs" class="tabs"></nav>
+      <div class="topbar-right">
+        <span id="user-email" class="muted"></span>
+        <button id="logout" class="ghost">Выйти</button>
+      </div>
+    </header>
+
+    <main id="view" class="view"></main>
+  </section>
+
+  <div id="modal" class="modal hidden">
+    <div class="modal-card card">
+      <div class="modal-head">
+        <h2 id="modal-title"></h2>
+        <button id="modal-close" class="ghost icon" aria-label="Закрыть">×</button>
+      </div>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

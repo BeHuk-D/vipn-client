@@ -1,0 +1,18 @@
+[Interface]
+PrivateKey = <SERVER_PRIVATE_KEY>
+Address = 10.66.66.1/24
+ListenPort = 51820
+MTU = 1280
+Jc = 4
+Jmin = 40
+Jmax = 70
+S1 = 30
+S2 = 40
+S3 = 50
+S4 = 60
+H1 = 1
+H2 = 2
+H3 = 3
+H4 = 4
+PostUp = iptables -I FORWARD -i %i -j ACCEPT; iptables -t nat -A POSTROUTING -o ens3 -j MASQUERADE; iptables -t mangle -A FORWARD -o %i -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1240; iptables -t mangle -A FORWARD -i %i -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1240
+PostDown = iptables -D FORWARD -i %i -j ACCEPT; iptables -t nat -D POSTROUTING -o ens3 -j MASQUERADE; iptables -t mangle -D FORWARD -o %i -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1240; iptables -t mangle -D FORWARD -i %i -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1240

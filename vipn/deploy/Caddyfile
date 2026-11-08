@@ -1,0 +1,98 @@
+{
+	admin off
+	servers {
+		protocols h1 h2
+	}
+}
+
+(vipn_site) {
+	@compressible not path /downloads/*
+	encode @compressible zstd gzip
+
+	log {
+		output discard
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "no-referrer"
+		-Via
+		-Server
+	}
+
+	redir /admin /admin/ 308
+	redir /account /account/ 308
+	redir /downloads /downloads/ 308
+
+	handle_path /admin/* {
+		reverse_proxy 127.0.0.1:8080 {
+			header_up X-Real-IP {remote_host}
+			header_down -Via
+		}
+	}
+
+	handle /api/* {
+		reverse_proxy 127.0.0.1:8080 {
+			header_up X-Real-IP {remote_host}
+			header_down -Via
+		}
+	}
+
+	handle /account/* {
+		reverse_proxy 127.0.0.1:8080 {
+			header_up X-Real-IP {remote_host}
+			header_down -Via
+		}
+	}
+
+	handle /s/* {
+		reverse_proxy 127.0.0.1:8080 {
+			header_up X-Real-IP {remote_host}
+			header_down -Via
+		}
+	}
+
+	handle /downloads/ {
+		root * /var/www/vipn-landing
+		rewrite * /downloads.html
+		header Cache-Control "no-cache"
+		header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://217.60.94.172; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
+		file_server
+	}
+
+	handle /downloads/releases.json {
+		root * /var/www/vipn-downloads
+		rewrite * /releases.json
+		header Cache-Control "no-cache"
+		header Content-Disposition "attachment"
+		file_server
+	}
+
+	handle_path /downloads/* {
+		root * /var/www/vipn-downloads
+		header Cache-Control "public, max-age=31536000, immutable"
+		header Content-Disposition "attachment"
+		file_server
+	}
+
+	handle {
+		root * /var/www/vipn-landing
+		header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://217.60.94.172; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
+		file_server
+	}
+}
+
+kadancevdmitrij15.clodocd.com {
+	import vipn_site
+}
+
+https://80.74.28.114 {
+	tls {
+		issuer acme {
+			profile shortlived
+		}
+	}
+	import vipn_site
+}

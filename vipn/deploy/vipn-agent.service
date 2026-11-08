@@ -1,0 +1,29 @@
+[Unit]
+Description=ViPN server agent
+After=network-online.target awg-quick@awg1.service
+Wants=network-online.target
+Requires=awg-quick@awg1.service
+
+[Service]
+Type=simple
+User=vipn
+Group=vipn
+EnvironmentFile=/etc/vipn/agent.env
+ExecStart=/opt/vipn/vipn-agent --interval 10
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+CapabilityBoundingSet=CAP_NET_ADMIN
+AmbientCapabilities=CAP_NET_ADMIN
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX AF_NETLINK
+IPAddressAllow=localhost
+MemoryDenyWriteExecute=true
+SystemCallFilter=@system-service
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target

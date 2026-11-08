@@ -48,11 +48,12 @@ jobs:
         env:
           QT_INSTALL_DIR: ${{ runner.temp }}
           AMNEZIAVPN_VERSION: ${{ needs.version.outputs.value }}
+        working-directory: vipn-client
         run: deploy/build.sh --generator Ninja --installer all
       - uses: actions/upload-artifact@v4
         with:
           name: linux-installer
-          path: deploy/build/ViPN_*_linux_x64.run
+          path: vipn-client/deploy/build/ViPN_*_linux_x64.run
           if-no-files-found: error
 
   windows:
@@ -92,13 +93,14 @@ jobs:
         env:
           QT_INSTALL_DIR: ${{ runner.temp }}
           AMNEZIAVPN_VERSION: ${{ needs.version.outputs.value }}
+        working-directory: vipn-client
         run: deploy\build.bat --installer all
       - uses: actions/upload-artifact@v4
         with:
           name: windows-installer
           path: |
-            deploy/build/ViPN_*_windows_x64.exe
-            deploy/build/ViPN_*_windows_x64.msi
+            vipn-client/deploy/build/ViPN_*_windows_x64.exe
+            vipn-client/deploy/build/ViPN_*_windows_x64.msi
           if-no-files-found: error
 
   android:
@@ -173,6 +175,7 @@ jobs:
           QT_ANDROID_KEYSTORE_ALIAS: ${{ secrets.ANDROID_KEYSTORE_ALIAS }}
           QT_ANDROID_KEYSTORE_STORE_PASS: ${{ secrets.ANDROID_KEYSTORE_STORE_PASS }}
           QT_ANDROID_KEYSTORE_KEY_PASS: ${{ secrets.ANDROID_KEYSTORE_KEY_PASS }}
+        working-directory: vipn-client
         run: |
           deploy/build.sh -t android \
             --abi arm64-v8a --abi armeabi-v7a --abi x86_64
@@ -181,7 +184,7 @@ jobs:
           AMNEZIAVPN_VERSION: ${{ needs.version.outputs.value }}
         run: |
           mkdir -p dist/android
-          for apk in deploy/build/client/android-build/build/outputs/apk/oss/release/*.apk; do
+          for apk in vipn-client/deploy/build/client/android-build/build/outputs/apk/oss/release/*.apk; do
             [ -f "$apk" ] || continue
             abi=$(basename "$apk" | sed -E 's/.*-oss-(.*)-release\.apk$/\1/')
             cp "$apk" "dist/android/ViPN_${AMNEZIAVPN_VERSION}_android_${abi}.apk"

@@ -43,11 +43,12 @@ jobs:
         shell: cmd
         env:
           QT_INSTALL_DIR: ${{ runner.temp }}
+        working-directory: vipn-client
         run: deploy\build.bat --installer all
       - uses: actions/upload-artifact@v4
         with:
           name: vipn-windows
           path: |
-            deploy/build/ViPN_*_windows_x64.exe
-            deploy/build/ViPN_*_windows_x64.msi
+            vipn-client/deploy/build/ViPN_*_windows_x64.exe
+            vipn-client/deploy/build/ViPN_*_windows_x64.msi
           if-no-files-found: error

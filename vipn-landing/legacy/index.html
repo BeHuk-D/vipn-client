@@ -1,0 +1,949 @@
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>ViPN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=Unbounded:wght@500;600&display=swap">
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #ffffff;
+    --surface: #f4f4f1;
+    --card: #f7f7f4;
+    --line: #dfdfda;
+    --line-strong: #bcbcb5;
+    --fg: #0b0b0b;
+    --muted: #6c6c66;
+    --accent: #0b0b0b;
+    --accent-fg: #ffffff;
+    --font-display: "Unbounded", "Golos Text", system-ui, sans-serif;
+    --font-body: "Golos Text", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --wrap: 1180px;
+    --radius: 16px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #050505;
+      --surface: #101010;
+      --card: #0c0c0c;
+      --line: #242422;
+      --line-strong: #3a3a37;
+      --fg: #f2f2ee;
+      --muted: #9b9b94;
+      --accent: #f2f2ee;
+      --accent-fg: #050505;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #050505;
+    --surface: #101010;
+    --card: #0c0c0c;
+    --line: #242422;
+    --line-strong: #3a3a37;
+    --fg: #f2f2ee;
+    --muted: #9b9b94;
+    --accent: #f2f2ee;
+    --accent-fg: #050505;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-body);
+    font-size: 17px;
+    line-height: 1.6;
+    font-feature-settings: "ss01" on;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a {
+    color: inherit;
+  }
+
+  img,
+  svg {
+    max-width: 100%;
+  }
+
+  .rail {
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+
+  .wrap {
+    max-width: var(--wrap);
+    margin-inline: auto;
+  }
+
+  .crown {
+    width: 1em;
+    height: 1em;
+    display: inline-block;
+    vertical-align: -0.12em;
+    fill: currentColor;
+  }
+
+  /* header */
+
+  .site-head {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    min-height: 72px;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 19px;
+    letter-spacing: -0.02em;
+    text-decoration: none;
+    margin-right: auto;
+  }
+
+  .brand .crown {
+    font-size: 22px;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 24px;
+    font-size: 15px;
+  }
+
+  .nav-links a {
+    text-decoration: none;
+    color: var(--muted);
+    padding-block: 6px;
+  }
+
+  .nav-links a:hover {
+    color: var(--fg);
+  }
+
+  .lang {
+    display: inline-flex;
+    border: 1px solid var(--line-strong);
+    border-radius: 9px;
+    overflow: hidden;
+  }
+
+  .lang button {
+    font: inherit;
+    font-size: 13px;
+    line-height: 1;
+    padding: 8px 10px;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+  }
+
+  .lang button[aria-pressed="true"] {
+    background: var(--accent);
+    color: var(--accent-fg);
+  }
+
+  /* buttons */
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 22px;
+    border-radius: var(--radius);
+    border: 1px solid transparent;
+    font: inherit;
+    font-size: 16px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: var(--accent-fg);
+  }
+
+  .btn-primary:hover {
+    background: transparent;
+    color: var(--fg);
+    border-color: var(--line-strong);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--fg);
+    border-color: var(--line-strong);
+  }
+
+  .btn-ghost:hover {
+    border-color: var(--fg);
+  }
+
+  .btn-small {
+    padding: 10px 16px;
+    font-size: 15px;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--fg);
+    outline-offset: 3px;
+  }
+
+  /* hero */
+
+  .hero-band {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    gap: clamp(32px, 5vw, 72px);
+    align-items: center;
+    padding-block: clamp(56px, 8vw, 112px) clamp(48px, 6vw, 88px);
+  }
+
+  h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(38px, 6.4vw, 86px);
+    line-height: 1.02;
+    letter-spacing: -0.035em;
+    text-wrap: balance;
+  }
+
+  .lede {
+    margin: 26px 0 0;
+    max-width: 44ch;
+    font-size: clamp(17px, 1.6vw, 19px);
+    color: var(--muted);
+    text-wrap: pretty;
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 34px;
+  }
+
+  .specs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    margin: 44px 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  .specs li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .specs li::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    background: var(--fg);
+    display: inline-block;
+    transform: rotate(45deg);
+  }
+
+  /* code plate */
+
+  .code-plate {
+    width: 100%;
+    max-width: 420px;
+    justify-self: end;
+    border: 1px solid var(--line-strong);
+    border-radius: calc(var(--radius) + 6px);
+    background: var(--card);
+    padding: 38px 34px;
+    text-align: center;
+  }
+
+  .code-mark {
+    display: block;
+    width: 34px;
+    height: 34px;
+    margin: 0 auto 20px;
+    fill: currentColor;
+  }
+
+  .code-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  .code-text {
+    margin: 10px auto 0;
+    max-width: 30ch;
+    color: var(--muted);
+    font-size: 15px;
+  }
+
+  .code-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 22px;
+    font-size: 15px;
+    font-weight: 500;
+    text-underline-offset: 3px;
+  }
+
+  /* sections */
+
+  .band {
+    border-bottom: 1px solid var(--line);
+    padding-block: clamp(48px, 7vw, 96px);
+  }
+
+  .section-head {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: 24px 48px;
+    align-items: end;
+    margin-bottom: clamp(28px, 4vw, 52px);
+  }
+
+  h2 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: clamp(26px, 3.4vw, 42px);
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+
+  .section-lede {
+    margin: 0;
+    color: var(--muted);
+    max-width: 52ch;
+    text-wrap: pretty;
+  }
+
+  /* features */
+
+  .features {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: clamp(28px, 5vw, 72px);
+  }
+
+  .feature {
+    border-top: 1px solid var(--line);
+    padding-block: 26px;
+  }
+
+  .feature h3 {
+    margin: 0 0 8px;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  .feature p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 15.5px;
+    max-width: 42ch;
+  }
+
+  /* steps */
+
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+  }
+
+  .step {
+    padding: 26px clamp(20px, 3vw, 36px) 6px 0;
+  }
+
+  .step + .step {
+    border-left: 1px solid var(--line);
+    padding-left: clamp(20px, 3vw, 36px);
+  }
+
+  .step-num {
+    font-family: var(--font-display);
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .step h3 {
+    margin: 12px 0 8px;
+    font-size: 19px;
+    font-weight: 600;
+  }
+
+  .step p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 15.5px;
+    max-width: 34ch;
+  }
+
+  /* pricing */
+
+  .plans {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .plan {
+    padding: 4px clamp(20px, 3vw, 36px) 8px 0;
+  }
+
+  .plan + .plan {
+    border-left: 1px solid var(--line);
+    padding-left: clamp(20px, 3vw, 36px);
+  }
+
+  .plan-name {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--muted);
+  }
+
+  .price {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin: 10px 0 4px;
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: clamp(34px, 4.4vw, 54px);
+    letter-spacing: -0.04em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .price small {
+    font-family: var(--font-body);
+    font-size: 15px;
+    font-weight: 400;
+    letter-spacing: 0;
+    color: var(--muted);
+  }
+
+  .plan-devices {
+    font-size: 16px;
+    margin: 0 0 18px;
+  }
+
+  .plan ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 9px;
+    font-size: 15px;
+    color: var(--muted);
+  }
+
+  .plan li {
+    display: flex;
+    gap: 10px;
+  }
+
+  .plan li::before {
+    content: "";
+    flex: none;
+    width: 7px;
+    height: 7px;
+    margin-top: 8px;
+    border: 1px solid var(--line-strong);
+    transform: rotate(45deg);
+  }
+
+  .plan-note {
+    margin-top: 36px;
+    padding-top: 22px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 15px;
+    max-width: 62ch;
+  }
+
+  .plan-note a {
+    color: var(--fg);
+    text-underline-offset: 3px;
+  }
+
+  /* download */
+
+  .downloads {
+    border-top: 1px solid var(--line);
+  }
+
+  .download-row {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding-block: 20px;
+    border-bottom: 1px solid var(--line);
+    text-decoration: none;
+  }
+
+  .download-row:last-child {
+    border-bottom: 0;
+  }
+
+  .os {
+    font-size: 17px;
+    font-weight: 500;
+    min-width: 110px;
+  }
+
+  .files {
+    color: var(--muted);
+    font-size: 14.5px;
+    font-family: var(--font-body);
+    font-variant-numeric: tabular-nums;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .download-row .arrow {
+    margin-left: auto;
+    color: var(--muted);
+    transition: color 160ms ease, transform 160ms ease;
+  }
+
+  .download-row:hover .arrow {
+    color: var(--fg);
+    transform: translateX(3px);
+  }
+
+  .download-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+    margin-top: 24px;
+  }
+
+  .download-hint {
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  /* footer */
+
+  .site-foot {
+    padding-block: 34px 42px;
+  }
+
+  .foot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 28px;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .foot a {
+    color: var(--muted);
+    text-decoration: none;
+  }
+
+  .foot a:hover {
+    color: var(--fg);
+  }
+
+  .foot-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-display);
+    font-size: 15px;
+    letter-spacing: -0.01em;
+    color: var(--fg);
+  }
+
+  /* responsive */
+
+  @media (max-width: 900px) {
+    .hero {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .code-plate {
+      justify-self: start;
+      max-width: 460px;
+    }
+
+    .section-head {
+      grid-template-columns: minmax(0, 1fr);
+      align-items: start;
+    }
+
+    .features {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (max-width: 760px) {
+    .nav-links {
+      display: none;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .nav > .btn {
+      display: none;
+    }
+
+    .nav {
+      gap: 16px;
+    }
+  }
+
+  @media (max-width: 620px) {
+    body {
+      font-size: 16px;
+    }
+
+    .steps {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .step,
+    .step + .step {
+      border-left: 0;
+      border-top: 1px solid var(--line);
+      padding: 22px 0;
+    }
+
+    .step:last-child {
+      padding-bottom: 0;
+    }
+
+    .plans {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .plan,
+    .plan + .plan {
+      border-left: 0;
+      border-top: 1px solid var(--line);
+      padding: 24px 0;
+    }
+
+    .plan:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    .download-row {
+      flex-wrap: wrap;
+      gap: 2px 16px;
+    }
+
+    .files {
+      flex-basis: 100%;
+      order: 3;
+    }
+
+    .download-row .arrow {
+      order: 2;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+</style>
+
+<svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true" focusable="false">
+  <symbol id="crown" viewBox="0 0 256 256">
+    <path d="M42.5 82 L72.5 128 L99 82 L127.5 128 L156 82 L182.5 128 L212.5 82.5 L212.5 128 L42.5 128 Z"></path>
+    <path d="M42.5 140 L212.5 140 L212.5 174 L42.5 174 Z"></path>
+  </symbol>
+</svg>
+
+<header class="site-head rail">
+  <div class="wrap nav">
+    <a class="brand" href="#top">
+      <svg class="crown" viewBox="0 0 256 256" aria-hidden="true"><use href="#crown"></use></svg>
+      <span>ViPN</span>
+    </a>
+    <nav class="nav-links" aria-label="Sections">
+      <a href="#features" data-ru="Возможности" data-en="Features">Возможности</a>
+      <a href="#pricing" data-ru="Тарифы" data-en="Pricing">Тарифы</a>
+      <a href="#download" data-ru="Скачать" data-en="Download">Скачать</a>
+    </nav>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-lang-set="ru" aria-pressed="true">RU</button>
+      <button type="button" data-lang-set="en" aria-pressed="false">EN</button>
+    </div>
+    <a class="btn btn-primary btn-small" href="#download" data-ru="Скачать клиент" data-en="Get the app">Скачать клиент</a>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero-band rail">
+    <div class="wrap hero">
+      <div>
+        <h1 data-ru="VPN, которого не видно" data-en="A VPN that doesn't look like one">VPN, которого не видно</h1>
+        <p class="lede" data-ru="Протокол ViPN маскирует трафик под обычные соединения, поэтому фильтры DPI его не распознают. Одна ссылка-подписка на все ваши устройства." data-en="The ViPN protocol disguises your traffic as ordinary connections, so DPI filters leave it alone. One subscription link covers every device you use.">Протокол ViPN маскирует трафик под обычные соединения, поэтому фильтры DPI его не распознают. Одна ссылка-подписка на все ваши устройства.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#download" data-ru="Скачать клиент" data-en="Get the app">Скачать клиент</a>
+          <a class="btn btn-ghost" href="#pricing" data-ru="Посмотреть тарифы" data-en="See pricing">Посмотреть тарифы</a>
+        </div>
+        <ul class="specs">
+          <li data-ru="Протокол ViPN" data-en="ViPN Protocol">Протокол ViPN</li>
+          <li data-ru="до 10 устройств" data-en="up to 10 devices">до 10 устройств</li>
+          <li data-ru="безлимитный трафик" data-en="unlimited traffic">безлимитный трафик</li>
+          <li data-ru="Linux, Windows, Android" data-en="Linux, Windows, Android">Linux, Windows, Android</li>
+        </ul>
+      </div>
+
+      <div class="code-plate">
+        <svg class="code-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+        <p class="code-title" data-ru="Открытый код" data-en="Open source">Открытый код</p>
+        <p class="code-text" data-ru="Мы открыли исходный код клиента. Читайте и проверяйте." data-en="We publish the client source. Read it and check it yourself.">Мы открыли исходный код клиента. Читайте и проверяйте.</p>
+        <a class="code-link" href="https://github.com/BeHuk-D/vipn-client" target="_blank" rel="noopener" data-ru="Открыть GitHub" data-en="Open GitHub">Открыть GitHub <span aria-hidden="true">↗</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="band rail" id="features">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 data-ru="Что внутри" data-en="What is inside">Что внутри</h2>
+        <p class="section-lede" data-ru="Собственный протокол с обфускацией, простая привязка устройств и контроль скорости на стороне сервера." data-en="Our own protocol with obfuscation, simple device binding and speed control enforced on the server.">Собственный протокол с обфускацией, простая привязка устройств и контроль скорости на стороне сервера.</p>
+      </div>
+
+      <div class="features">
+        <article class="feature">
+          <h3 data-ru="Трафик не похож на VPN" data-en="Looks like regular traffic">Трафик не похож на VPN</h3>
+          <p data-ru="Протокол ViPN добавляет шум и меняет заголовки пакетов. Для DPI это обычное соединение, а не туннель, который нужно блокировать." data-en="The ViPN protocol adds noise and reshapes packet headers. To DPI it is an ordinary connection, not a tunnel to block.">Протокол ViPN добавляет шум и меняет заголовки пакетов. Для DPI это обычное соединение, а не туннель, который нужно блокировать.</p>
+        </article>
+        <article class="feature">
+          <h3 data-ru="Одна ссылка на все устройства" data-en="One link for every device">Одна ссылка на все устройства</h3>
+          <p data-ru="Вставили ссылку в клиент — устройство привязалось само. Сколько устройств можно подключить, задаётся при выдаче подписки." data-en="Paste the link into the app and the device binds itself. How many devices you can connect is set when the subscription is issued.">Вставили ссылку в клиент — устройство привязалось само. Сколько устройств можно подключить, задаётся при выдаче подписки.</p>
+        </article>
+        <article class="feature">
+          <h3 data-ru="Скорость каждому" data-en="A speed cap per device">Скорость каждому</h3>
+          <p data-ru="Лимит полосы настраивается для каждого устройства отдельно, чтобы один клиент не забирал весь канал." data-en="Bandwidth is capped per device, so one client cannot take the whole channel.">Лимит полосы настраивается для каждого устройства отдельно, чтобы один клиент не забирал весь канал.</p>
+        </article>
+        <article class="feature">
+          <h3 data-ru="Считаем трафик, а не сайты" data-en="We count traffic, not websites">Считаем трафик, а не сайты</h3>
+          <p data-ru="В панели видно объём трафика и время последнего подключения устройства. Историю посещений мы не храним." data-en="The panel shows traffic volume and the last connection time per device. We do not keep a browsing history.">В панели видно объём трафика и время последнего подключения устройства. Историю посещений мы не храним.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="band rail">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 data-ru="Подключение за минуту" data-en="Connected in a minute">Подключение за минуту</h2>
+        <p class="section-lede" data-ru="Аккаунт не нужен: клиенту достаточно ссылки-подписки." data-en="No account needed: the app only asks for your subscription link.">Аккаунт не нужен: клиенту достаточно ссылки-подписки.</p>
+      </div>
+
+      <div class="steps">
+        <article class="step">
+          <div class="step-num">01</div>
+          <h3 data-ru="Получите ссылку" data-en="Get a link">Получите ссылку</h3>
+          <p data-ru="Ссылка-подписка приходит после оформления. Она же служит ключом доступа." data-en="You receive a subscription link after checkout. The same link is your access key.">Ссылка-подписка приходит после оформления. Она же служит ключом доступа.</p>
+        </article>
+        <article class="step">
+          <div class="step-num">02</div>
+          <h3 data-ru="Вставьте в клиент" data-en="Paste it into the app">Вставьте в клиент</h3>
+          <p data-ru="Скачайте ViPN для Linux, Windows или Android и вставьте ссылку на главном экране." data-en="Download ViPN for Linux, Windows or Android and paste the link on the first screen.">Скачайте ViPN для Linux, Windows или Android и вставьте ссылку на главном экране.</p>
+        </article>
+        <article class="step">
+          <div class="step-num">03</div>
+          <h3 data-ru="Подключайтесь" data-en="Connect">Подключайтесь</h3>
+          <p data-ru="Клиент сам загрузит конфиг и обновит его, когда вы продлите подписку." data-en="The app fetches the config and refreshes it when you extend the subscription.">Клиент сам загрузит конфиг и обновит его, когда вы продлите подписку.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="band rail" id="pricing">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 data-ru="Тарифы" data-en="Pricing">Тарифы</h2>
+        <p class="section-lede" data-ru="Цена за месяц. Чем больше устройств, тем больше слотов в одной подписке." data-en="Price per month. More devices means more slots on a single subscription.">Цена за месяц. Чем больше устройств, тем больше слотов в одной подписке.</p>
+      </div>
+
+      <div class="plans">
+        <article class="plan">
+          <p class="plan-name" data-ru="Старт" data-en="Start">Старт</p>
+          <p class="price"><span>75</span><small data-ru="₽ / мес" data-en="₽ / mo">₽ / мес</small></p>
+          <p class="plan-devices" data-ru="1 устройство" data-en="1 device">1 устройство</p>
+          <ul>
+            <li data-ru="Безлимитный трафик" data-en="Unlimited traffic">Безлимитный трафик</li>
+            <li data-ru="Протокол ViPN с обфускацией" data-en="ViPN Protocol with obfuscation">Протокол ViPN с обфускацией</li>
+            <li data-ru="Автообновление конфига" data-en="Config refreshes itself">Автообновление конфига</li>
+          </ul>
+        </article>
+
+        <article class="plan">
+          <p class="plan-name" data-ru="Семья" data-en="Family">Семья</p>
+          <p class="price"><span>150</span><small data-ru="₽ / мес" data-en="₽ / mo">₽ / мес</small></p>
+          <p class="plan-devices" data-ru="3 устройства" data-en="3 devices">3 устройства</p>
+          <ul>
+            <li data-ru="Безлимитный трафик" data-en="Unlimited traffic">Безлимитный трафик</li>
+            <li data-ru="Протокол ViPN с обфускацией" data-en="ViPN Protocol with obfuscation">Протокол ViPN с обфускацией</li>
+            <li data-ru="Лимит скорости на устройство" data-en="Speed cap per device">Лимит скорости на устройство</li>
+          </ul>
+        </article>
+
+        <article class="plan">
+          <p class="plan-name" data-ru="Максимум" data-en="Maximum">Максимум</p>
+          <p class="price"><span>300</span><small data-ru="₽ / мес" data-en="₽ / mo">₽ / мес</small></p>
+          <p class="plan-devices" data-ru="10 устройств" data-en="10 devices">10 устройств</p>
+          <ul>
+            <li data-ru="Безлимитный трафик" data-en="Unlimited traffic">Безлимитный трафик</li>
+            <li data-ru="Протокол ViPN с обфускацией" data-en="ViPN Protocol with obfuscation">Протокол ViPN с обфускацией</li>
+            <li data-ru="Лимит скорости на устройство" data-en="Speed cap per device">Лимит скорости на устройство</li>
+          </ul>
+        </article>
+      </div>
+
+      <p class="plan-note"><span data-ru="Продажи пока не открыты: кнопка оформления появится здесь позже. Клиент уже можно скачать — подписка подключается одной ссылкой." data-en="Sales are not open yet: checkout will appear here later. You can download the app now; a subscription connects with a single link.">Продажи пока не открыты: кнопка оформления появится здесь позже. Клиент уже можно скачать — подписка подключается одной ссылкой.</span> <a href="#download" data-ru="Скачать клиент" data-en="Get the app">Скачать клиент</a></p>
+    </div>
+  </section>
+
+  <section class="band rail" id="download">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 data-ru="Скачать клиент" data-en="Download the app">Скачать клиент</h2>
+        <p class="section-lede" data-ru="Сборки выходят на GitHub. Установщик и APK лежат в последнем релизе." data-en="Builds ship on GitHub. The installer and APKs live in the latest release.">Сборки выходят на GitHub. Установщик и APK лежат в последнем релизе.</p>
+      </div>
+
+      <div class="downloads">
+        <a class="download-row" href="https://github.com/BeHuk-D/vipn-client/releases/latest" target="_blank" rel="noopener">
+          <span class="os">Linux</span>
+          <span class="files">ViPN_x.y.z_linux_x64.run</span>
+          <span class="arrow" aria-hidden="true">↗</span>
+        </a>
+        <a class="download-row" href="https://github.com/BeHuk-D/vipn-client/releases/latest" target="_blank" rel="noopener">
+          <span class="os">Windows</span>
+          <span class="files">ViPN_x.y.z_windows_x64.exe · .msi</span>
+          <span class="arrow" aria-hidden="true">↗</span>
+        </a>
+        <a class="download-row" href="https://github.com/BeHuk-D/vipn-client/releases/latest" target="_blank" rel="noopener">
+          <span class="os">Android</span>
+          <span class="files">arm64-v8a · armeabi-v7a · x86_64 APK</span>
+          <span class="arrow" aria-hidden="true">↗</span>
+        </a>
+      </div>
+
+      <div class="download-actions">
+        <a class="btn btn-primary" href="https://github.com/BeHuk-D/vipn-client/releases/latest" target="_blank" rel="noopener" data-ru="Открыть последний релиз" data-en="Open the latest release">Открыть последний релиз</a>
+        <span class="download-hint" data-ru="Windows: выберите .exe для обычной установки." data-en="Windows: pick the .exe for a regular install.">Windows: выберите .exe для обычной установки.</span>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-foot rail">
+  <div class="wrap foot">
+    <span class="foot-brand">
+      <svg class="crown" viewBox="0 0 256 256" aria-hidden="true"><use href="#crown"></use></svg>
+      ViPN
+    </span>
+    <span data-ru="VPN на протоколе ViPN. © 2026" data-en="VPN built on the ViPN protocol. © 2026">VPN на протоколе ViPN. © 2026</span>
+    <a href="https://github.com/BeHuk-D/vipn-client" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var lang = "ru";
+    try {
+      var stored = localStorage.getItem("vipn-lang");
+      if (stored === "ru" || stored === "en") {
+        lang = stored;
+      } else if ((navigator.language || "").toLowerCase().indexOf("en") === 0) {
+        lang = "en";
+      }
+    } catch (error) {}
+
+    function applyTexts() {
+      document.documentElement.lang = lang;
+      var nodes = document.querySelectorAll("[data-ru][data-en]");
+      for (var i = 0; i < nodes.length; i += 1) {
+        var value = nodes[i].getAttribute("data-" + lang);
+        if (value !== null) {
+          nodes[i].textContent = value;
+        }
+      }
+      var buttons = document.querySelectorAll("[data-lang-set]");
+      for (var j = 0; j < buttons.length; j += 1) {
+        buttons[j].setAttribute("aria-pressed", buttons[j].getAttribute("data-lang-set") === lang ? "true" : "false");
+      }
+    }
+
+    var langButtons = document.querySelectorAll("[data-lang-set]");
+    for (var k = 0; k < langButtons.length; k += 1) {
+      langButtons[k].addEventListener("click", function (event) {
+        lang = event.currentTarget.getAttribute("data-lang-set");
+        try {
+          localStorage.setItem("vipn-lang", lang);
+        } catch (error) {}
+        applyTexts();
+      });
+    }
+
+    applyTexts();
+  })();
+</script>

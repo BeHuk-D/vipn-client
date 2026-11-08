@@ -36,8 +36,10 @@ jobs:
         env:
           QT_INSTALL_DIR: ${{ runner.temp }}
           AMNEZIA_BUILD_TESTS: 'ON'
+        working-directory: vipn-client
         run: deploy/build.sh --generator Ninja
       - name: Run tests
         env:
           QT_QPA_PLATFORM: offscreen
+        working-directory: vipn-client
         run: ctest --test-dir deploy/build/client/tests --output-on-failure

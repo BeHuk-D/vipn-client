@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>ViPN — личный кабинет</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23fff'/%3E%3Ctext x='16' y='23' font-family='system-ui' font-size='20' font-weight='700' text-anchor='middle' fill='%23000'%3EV%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <section id="auth-screen" class="screen centered">
+    <div class="card login-card">
+      <a class="back-link" href="/">← На главную</a>
+      <div class="logo">V</div>
+      <h1>ViPN</h1>
+      <p class="muted">Личный кабинет</p>
+      <div class="segmented" role="tablist">
+        <button type="button" id="mode-login" class="active" role="tab" aria-selected="true">Вход</button>
+        <button type="button" id="mode-register" role="tab" aria-selected="false">Регистрация</button>
+      </div>
+      <form id="auth-form" novalidate>
+        <label>Логин
+          <input name="login" autocomplete="username" required minlength="3" maxlength="32"
+                 spellcheck="false" autocapitalize="none">
+        </label>
+        <label>Пароль
+          <input name="password" type="password" autocomplete="current-password" required
+                 minlength="8" maxlength="128">
+        </label>
+        <p id="auth-hint" class="hint muted hidden"></p>
+        <button type="submit" class="primary" id="auth-submit">Войти</button>
+        <p id="auth-error" class="error" role="alert"></p>
+      </form>
+    </div>
+  </section>
+
+  <section id="cabinet-screen" class="screen hidden">
+    <header class="topbar">
+      <div class="brand"><span class="logo small">V</span> ViPN</div>
+      <div class="topbar-right">
+        <span id="account-login" class="muted"></span>
+        <button id="logout" class="ghost">Выйти</button>
+      </div>
+    </header>
+
+    <main id="account-view" class="view cabinet"></main>
+  </section>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

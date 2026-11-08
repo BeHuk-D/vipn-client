@@ -1,37 +1,28 @@
 # ViPN
 
-Клиент коммерческого VPN по подписке. Форк [Amnezia](https://github.com/amnezia-vpn/amnezia-client)
-(GPL-3.0), переделанный под один сценарий: пользователь вставляет ссылку подписки и подключается.
+VPN по подписке: пользователь вставляет ссылку `https://<panel>/s/<token>`, клиент
+скачивает конфиг AmneziaWG и подключается. Проект вырос из форка
+[AmneziaVPN](https://github.com/amnezia-vpn/amnezia-client) (GPL-3.0) и состоит из
+четырёх частей.
 
-## Возможности
+## Структура
 
-- Подключение по ссылке вида `https://<panel>/s/<token>` — клиент сам скачивает
-  конфиг AmneziaWG, показывает сервер, страну и срок действия.
-- Обновление подписки из приложения и замена ссылки.
-- Проверка задержки до сервера (через туннель — до шлюза, без VPN — до панели).
-- Монохромный интерфейс, русский и английский языки.
-- Настройки соединения: DNS и KillSwitch.
-- Раздельное туннелирование по сайтам и IP (Linux, Windows, macOS) и по приложениям
-  (Windows, режим исключения).
-- Проверка новых версий по GitHub Releases и переход на страницу релизов.
+| Каталог | Что это | Стек |
+|---|---|---|
+| `vipn-client/` | Настольный и мобильный клиент | Qt 6.10.1, C++17/20, QML |
+| `vipn/` | Панель управления и агент узлов | Rust, axum, SQLite |
+| `vipn-landing/` | Лендинг и страница загрузок | React 19, Vite, TypeScript |
+| `vipn-keystore/` | Ключ подписи Android и пароли к нему | локально, не коммитится |
 
-Поддерживаемые платформы сборки: Linux, Windows, Android и macOS. iOS в сборке отсутствует.
+```
+клиент ──GET /s/{token}──> панель ──x-agent-token──> агент ──> AmneziaWG на узле
+   ^                          |
+   └── подписка, серверы, ping, split tunneling
+```
 
-## Раздельное туннелирование
+Подробности по клиенту — в [`vipn-client/README.md`](vipn-client/README.md).
 
-По сайтам и IP работает на всех настольных платформах. Список можно вести вручную,
-импортировать и экспортировать в JSON; доменные имена разрешаются в IP при добавлении.
-Режимы: «только адреса из списка идут через VPN» и «адреса из списка идут напрямую».
-
-По приложениям доступно только на Windows и только в режиме исключения: выбранные
-`.exe` ходят в обход туннеля, всё остальное — через VPN. Режим «только приложения из
-списка через VPN» на Windows недоступен (ограничение WFP-драйвера).
-
-На Linux раздельного туннелирования по процессам в клиенте нет: ядро не даёт
-надёжного способа маршрутизировать трафик по приложению без eBPF или запуска
-приложений в отдельной cgroup. Используйте список сайтов и IP.
-
-## Сборка
+## Клиент
 
 Требования: CMake 3.25+, Qt 6.10.1, Python 3, Conan 2.28, компилятор C++17/20.
 
@@ -40,58 +31,54 @@ git submodule update --init --recursive
 python3 -m venv .venv
 .venv/bin/pip install "conan==2.28.0"
 
-# Linux: бинарники + установщик IFW
+cd vipn-client
 QT_INSTALL_DIR="$HOME/Qt" deploy/build.sh --generator Ninja --installer all
-
-# Windows (из cmd, при установленном Qt/MSVC)
-deploy\build.bat --installer all
 ```
 
-Артефакты:
+Artifacts: `deploy/build/ViPN_<version>_linux_x64.run`, на Windows —
+`deploy/build/ViPN_<version>_windows_x64.exe` и `.msi`. Версия задаётся через
+`AMNEZIAVPN_VERSION`.
 
-- Linux: `deploy/build/ViPN_<version>_linux_x64.run`
-- Windows: `deploy/build/ViPN_<version>_windows_x64.exe` и `.msi`
-
-Версию можно задать переменной `AMNEZIAVPN_VERSION` (по умолчанию `1.0.0.0`).
-
-## Тесты
+## Бэкенд
 
 ```bash
-AMNEZIA_BUILD_TESTS=ON QT_INSTALL_DIR="$HOME/Qt" deploy/build.sh --generator Ninja
-ctest --test-dir deploy/build/client/tests --output-on-failure
+cd vipn
+cargo build --release          # target/release/vipn-panel, target/release/vipn-agent
+cargo test
 ```
 
-Тесты также собираются и прогоняются в CI (`.github/workflows/tests.yml`).
+Панель читает конфигурацию из переменных окружения (образец —
+`vipn/deploy/panel.env.example`), хранит состояние в SQLite и отдаёт админку и
+личный кабинет с того же порта. Агент разворачивается на узле и синхронизирует
+AmneziaWG-интерфейс с панелью.
 
-## Релизы и автообновление
+Установка и обслуживание сервера — `vipn/deploy/`: `install.sh`, `provision.sh`,
+`bootstrap-agent.sh`, `backup.sh`, systemd-юниты, `Caddyfile` и скрипт зеркалирования
+релизов.
 
-Релиз создаётся тегом:
+## Лендинг
 
 ```bash
-git tag v1.2.0
-git push origin v1.2.0
+cd vipn-landing
+npm ci
+npm run dev      # разработка
+npm run build    # tsc --noEmit && vite build -> dist/
 ```
 
-Workflow `.github/workflows/release.yml` собирает Linux и Windows сборки с этой
-версией и прикладывает установщики к GitHub Release. Клиент при запуске
-запрашивает `https://api.github.com/repos/BeHuk-D/vipn-client/releases/latest`,
-сравнивает версию с собственной и, если доступна новая, открывает экран обновления
-со ссылкой на страницу релизов. Скачивание и установка выполняются вручную —
-кнопка «Открыть GitHub» открывает страницу релизов в браузере.
+## CI и релизы
 
-Репозиторий обновлений задаётся в `client/cmake/branding/common.cmake`
-(`CLIENT_UPDATE_GITHUB_REPO`), включение автообновления — `CLIENT_ENABLE_APP_UPDATES`.
+- `.github/workflows/tests.yml` — сборка клиента с тестами и `ctest` на каждый push и PR.
+- `.github/workflows/release.yml` — по тегу `v*` собирает Linux, Windows и Android,
+  подписывает APK и публикует GitHub Release.
+- `.github/workflows/windows.yml` — ручная сборка под Windows.
 
-## Права доступа к службе
+Клиент проверяет обновления по GitHub Releases и открывает страницу релизов —
+скачивание и установка остаются за пользователем.
 
-`ViPN-service` слушает IPC-сокет с правами `0660` и группой `vipn`: подключиться
-к службе может только пользователь из этой группы. Установщик создаёт группу
-`vipn` и добавляет в неё пользователя, запустившего установку (Linux — через
-`SUDO_USER`, macOS — пользователя консольной сессии). После установки нужно
-перелогиниться, чтобы членство в группе вступило в силу.
+## Секреты
 
-## Лицензия
-
-GPL-3.0. Проект является форком Amnezia Client; исходный код и лицензия
-сохранены в репозитории. При распространении сборок исходники должны быть
-доступны.
+`vipn-keystore/`, `*.jks`, `*.keystore`, `credentials.env`, `node_modules/`,
+`target/`, `dist/` и каталоги сборки исключены через `.gitignore`. Ключ подписи и
+пароли держите только локально или в GitHub Actions secrets
+(`ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_ALIAS`, `ANDROID_KEYSTORE_STORE_PASS`,
+`ANDROID_KEYSTORE_KEY_PASS`).
