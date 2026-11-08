@@ -44,6 +44,7 @@ vipn-keystore/
 *.jks
 *.keystore
 credentials.env
+.env
 local.properties
 DeveloperIdApplicationCertificate.p12
 DeveloperIdInstallerCertificate.p12
