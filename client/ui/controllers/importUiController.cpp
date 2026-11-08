@@ -38,7 +38,7 @@ static QStringList subscriptionCandidateUrls(const QString &url)
 {
     static const QStringList bases = {
         QStringLiteral("https://vipn-connect.space"),
-        QStringLiteral("https://vipn-web.kadancevdmitrij15.workers.dev"),
+        QStringLiteral("https://vipn-web.vipn-net.workers.dev"),
     };
 
     QStringList candidates;
