@@ -9,7 +9,7 @@ Cloudflare Worker), `vipn-client` (Qt/QML), `vipn-infra` (bash, systemd, кон�
 
 | Роль | IP | ОС | Что запущено |
 | --- | --- | --- | --- |
-| Панель | `31.59.125.46` | Ubuntu 22.04, 1 vCPU, 1 ГБ | `vipn-panel`, `cloudflared`, `vipn-ip-tls`, `wg0` (10.99.0.1/24), `vipn-backup.timer` |
+| Панель | `31.59.125.46` | Ubuntu 22.04, 1 vCPU, 1 ГБ | `vipn-panel`, `cloudflared`, `vipn-ip-tls`, `wg0` (10.99.0.1/24), `vipn-backup.timer`, `vipn-releases.timer` |
 | NL-1 | `80.74.28.114` | Ubuntu 24.04 | `awg1` (VPN, UDP 51820), `wg0` (10.99.0.2), `vipn-agent` |
 | Server-1 (DE) | `217.60.94.172` | Ubuntu 22.04 | `awg1` (VPN, UDP 51820), `wg0` (10.99.0.3), `vipn-agent` |
 
@@ -32,9 +32,12 @@ PANEL:
 - Веб-порты на узлах закрыты, Caddy удалён (конфиги в `/root/caddy-retired-20261108`).
 - env агента: `/etc/vipn/agent.env`.
 
-DNS и Cloudflare: зона `vipn-connect.space`. Apex и `www` — Worker `vipn-web`
-(статика + прокси `/api/account/*`, `/s/*`, `/r/*`). `api.` — туннель. Записи
-`admin.` и `agents.` удалены. `mirror.` планируется.
+DNS и Cloudflare: зона `vipn-connect.space`. Apex, `www` и `mirror` — Worker
+`vipn-web` (статика + прокси `/api/account/*`, `/s/*`, `/r/*`, `/downloads/*`).
+`api.` — туннель. Записи `admin.` и `agents.` удалены.
+Релизы клиента зеркалируются на панель (`/var/www/vipn-downloads`,
+`vipn-releases.timer`) и раздаются через `/downloads/*`; GitHub — только
+источник синхронизации.
 
 ## Доступ
 
@@ -75,7 +78,8 @@ DNS и Cloudflare: зона `vipn-connect.space`. Apex и `www` — Worker `vipn
 - Оба узла используют подсеть `10.66.66.0/24`, адреса выдаются по узлам
   (`?all=1` создаёт устройство на каждом). При росте — переход на /16.
 - Метрики агент шлёт каждые 10 секунд; панель пишет `metrics` и обновляет
-  `devices` (rx/tx, rate, last_handshake). Сырые метрики пока не чистятся.
+  `devices` (rx/tx, rate, last_handshake). Сырые метрики чистятся по
+  `VIPN_METRICS_RETENTION_DAYS` (30 дней), закрытые алерты — 90 дней.
 
 ## Правила работы
 
