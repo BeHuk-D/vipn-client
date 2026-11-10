@@ -17,7 +17,6 @@ export type Strings = {
   actions: {
     download: string;
     pricing: string;
-    release: string;
     login: string;
     buy: string;
     choose: string;
@@ -27,19 +26,7 @@ export type Strings = {
   header: { menu: string; close: string };
   hero: { eyebrow: string; title: string[]; lede: string; note: string };
   mock: {
-    status: string;
-    connected: string;
-    server: string;
-    ping: string;
-    download: string;
-    upload: string;
     secure: string;
-    downloadValue: string;
-    uploadValue: string;
-    protocol: string;
-    subscription: string;
-    active: string;
-    until: string;
   };
   ping: {
     label: string;
@@ -99,9 +86,10 @@ export type Strings = {
     copied: string;
     back: string;
     noManifest: string;
+    pending: string;
     osNotes: { Linux: string; Windows: string; Android: string };
   };
-  footer: { tagline: string; note: string; rights: string };
+  footer: { tagline: string; note: string; rights: string; documents: string; locations: string };
 };
 
 const unlimitedRu = "Безлимитный трафик";
@@ -119,7 +107,6 @@ export const strings: Record<Lang, Strings> = {
     actions: {
       download: "Скачать клиент",
       pricing: "Посмотреть тарифы",
-      release: "Открыть последний релиз",
       login: "Войти",
       buy: "Купить",
       choose: "Выбрать",
@@ -128,25 +115,13 @@ export const strings: Record<Lang, Strings> = {
     },
     header: { menu: "Меню", close: "Закрыть" },
     hero: {
-      eyebrow: "VPN на AmneziaWG · Германия · Нидерланды",
+      eyebrow: "VPN · Германия · Нидерланды",
       title: ["VPN,", "которого", "не видно."],
       lede: "YouTube, Instagram, Telegram и любимые сериалы снова работают — без тормозов и «недоступно в вашем регионе». Одна подписка на все устройства, подключение за минуту.",
       note: "Без аккаунта и логов. Установка — минута.",
     },
     mock: {
-      status: "Защита включена",
-      connected: "Подключено",
-      server: "Германия",
-      ping: "Пинг",
-      download: "Скачано",
-      upload: "Отдано",
       secure: "Трафик зашифрован",
-      downloadValue: "14,2 ГБ",
-      uploadValue: "3,1 ГБ",
-      protocol: "AmneziaWG 3.1",
-      subscription: "Подписка",
-      active: "Активна",
-      until: "до 12.12.2026",
     },
     ping: {
       label: "Пинг до Германии",
@@ -207,7 +182,7 @@ export const strings: Record<Lang, Strings> = {
       linkLabel: "Ссылка-подписка",
       linkValue: "vipn-connect.space/r/8f3k2m",
       devicesLabel: "До 4 устройств",
-      protocolNote: "DPI · AmneziaWG · без обрывов",
+      protocolNote: "DPI · без обрывов",
     },
     steps: {
       eyebrow: "Как это работает",
@@ -300,11 +275,12 @@ export const strings: Record<Lang, Strings> = {
           file: "ViPN_x.y.z_android_arm64-v8a.apk",
         },
       ],
-      fallback: "Не получается скачать? Напишите в Telegram — поможем. Или откройте релиз на GitHub.",
+      fallback: "Не получается скачать? Напишите в Telegram — поможем с установкой.",
       copy: "Скопировать",
       copied: "Скопировано",
       back: "На главную",
-      noManifest: "Список файлов появится, когда выйдет первый релиз. Пока — на GitHub.",
+      noManifest: "Список файлов обновится в ближайшее время. Пока напишите в Telegram — пришлём установщик.",
+      pending: "Напишите в Telegram",
       osNotes: {
         Linux: "Установщик для x64-дистрибутивов",
         Windows: "Windows 10 и 11, x64",
@@ -315,6 +291,8 @@ export const strings: Record<Lang, Strings> = {
       tagline: "VPN, которого не видно.",
       note: "Мы не храним историю посещений и не передаём данные третьим лицам.",
       rights: "© 2026 ViPN",
+      documents: "Документы",
+      locations: "Германия · Нидерланды",
     },
   },
   en: {
@@ -328,7 +306,6 @@ export const strings: Record<Lang, Strings> = {
     actions: {
       download: "Get the app",
       pricing: "See pricing",
-      release: "Open the latest release",
       login: "Log in",
       buy: "Buy",
       choose: "Choose",
@@ -337,25 +314,13 @@ export const strings: Record<Lang, Strings> = {
     },
     header: { menu: "Menu", close: "Close" },
     hero: {
-      eyebrow: "AmneziaWG VPN · Germany · Netherlands",
+      eyebrow: "VPN · Germany · Netherlands",
       title: ["A VPN", "that doesn't", "look like one."],
       lede: "YouTube, Instagram, Telegram and your favourite shows work again — no slowdowns, no “not available in your region”. One subscription for every device, set up in a minute.",
       note: "No account, no logs. Setup takes a minute.",
     },
     mock: {
-      status: "Protection on",
-      connected: "Connected",
-      server: "Germany",
-      ping: "Ping",
-      download: "Downloaded",
-      upload: "Uploaded",
       secure: "Traffic encrypted",
-      downloadValue: "14.2 GB",
-      uploadValue: "3.1 GB",
-      protocol: "AmneziaWG 3.1",
-      subscription: "Subscription",
-      active: "Active",
-      until: "until 12.12.2026",
     },
     ping: {
       label: "Ping to Germany",
@@ -416,7 +381,7 @@ export const strings: Record<Lang, Strings> = {
       linkLabel: "Subscription link",
       linkValue: "vipn-connect.space/r/8f3k2m",
       devicesLabel: "Up to 4 devices",
-      protocolNote: "DPI · AmneziaWG · no drops",
+      protocolNote: "DPI · no drops",
     },
     steps: {
       eyebrow: "How it works",
@@ -509,11 +474,12 @@ export const strings: Record<Lang, Strings> = {
           file: "ViPN_x.y.z_android_arm64-v8a.apk",
         },
       ],
-      fallback: "Can't download? Message us on Telegram and we'll help. Or open the GitHub release.",
+      fallback: "Can't download? Message us on Telegram and we'll help you install it.",
       copy: "Copy",
       copied: "Copied",
       back: "Back home",
-      noManifest: "The file list will appear with the first release. For now, see GitHub.",
+      noManifest: "The file list will update shortly. Meanwhile, message us on Telegram and we'll send the installer.",
+      pending: "Message us on Telegram",
       osNotes: {
         Linux: "Installer for x64 distributions",
         Windows: "Windows 10 and 11, x64",
@@ -524,6 +490,8 @@ export const strings: Record<Lang, Strings> = {
       tagline: "The VPN you can't see.",
       note: "We don't keep browsing history and never share data with third parties.",
       rights: "© 2026 ViPN",
+      documents: "Documents",
+      locations: "Germany · Netherlands",
     },
   },
 };

@@ -1,9 +1,7 @@
+import { company, documents } from "../company";
 import { useI18n } from "../i18n";
-import { REPO_URL } from "../links";
 import { Icon } from "./Icon";
 import { Logo } from "./Logo";
-
-const TELEGRAM_URL = "https://t.me/BeHukD";
 
 export function Footer() {
   const { s } = useI18n();
@@ -31,13 +29,22 @@ export function Footer() {
             <a href="/downloads/">{s.nav.download}</a>
           </nav>
 
+          <nav className="footer-nav footer-docs" aria-label={s.footer.documents}>
+            <span className="footer-nav-label">{s.footer.documents}</span>
+            {documents.map((doc) => (
+              <a key={doc.href} href={doc.href}>
+                {doc.label}
+              </a>
+            ))}
+          </nav>
+
           <div className="footer-contact">
-            <a href={TELEGRAM_URL} target="_blank" rel="noreferrer">
+            <a href={company.telegramUrl} target="_blank" rel="noreferrer">
               Telegram
               <Icon name="arrow" />
             </a>
-            <a href={REPO_URL} target="_blank" rel="noopener">
-              GitHub
+            <a href={`mailto:${company.email}`}>
+              {company.email}
               <Icon name="arrow" />
             </a>
           </div>
@@ -49,8 +56,12 @@ export function Footer() {
 
         <div className="footer-bottom">
           <span>{s.footer.rights}</span>
-          <span>{s.mock.protocol} · DE · NL</span>
+          <span>{s.footer.locations}</span>
         </div>
+
+        <p className="footer-legal">
+          {company.legalName} · {company.taxStatus} · ИНН {company.inn}
+        </p>
       </div>
     </footer>
   );

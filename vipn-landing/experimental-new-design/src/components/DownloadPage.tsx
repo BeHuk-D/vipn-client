@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useI18n } from "../i18n";
 import type { Lang } from "../i18n";
-import { RELEASE_URL } from "../links";
 import { Footer } from "./Footer";
 import { Header } from "./Header";
 import { Icon } from "./Icon";
@@ -195,13 +194,6 @@ export function DownloadPage() {
                     <span>{s.download.assetsLabel}</span>
                     <span>{manifest ? manifest.assets.length : s.download.targets.length}</span>
                   </div>
-                  <div className="version-row">
-                    <span>GitHub</span>
-                    <a href={RELEASE_URL} target="_blank" rel="noopener">
-                      {manifest?.tag ?? "Releases"}
-                      <Icon name="arrow" />
-                    </a>
-                  </div>
                 </div>
               </aside>
             </div>
@@ -271,13 +263,13 @@ export function DownloadPage() {
                       <div className="asset-list">
                         <a
                           className="asset"
-                          href={RELEASE_URL}
+                          href={TELEGRAM_URL}
                           target="_blank"
-                          rel="noopener"
+                          rel="noreferrer"
                         >
                           <span className="asset-main">
                             <span className="asset-name">{target.files}</span>
-                            <span className="asset-sub">GitHub · {s.actions.release}</span>
+                            <span className="asset-sub">{s.download.pending}</span>
                           </span>
                           <span className="asset-dl">
                             <Icon name="arrow" />
@@ -341,10 +333,6 @@ export function DownloadPage() {
                 <a className="btn btn-sm" href={TELEGRAM_URL} target="_blank" rel="noreferrer">
                   Telegram
                   <Icon name="telegram" />
-                </a>
-                <a className="btn btn-ghost btn-sm" href={RELEASE_URL} target="_blank" rel="noopener">
-                  GitHub
-                  <Icon name="arrow" />
                 </a>
               </div>
             </div>

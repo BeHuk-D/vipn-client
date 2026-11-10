@@ -18,8 +18,11 @@ export function Stats() {
   );
 }
 
+const TICKER_REPEATS = 6;
+
 export function Ticker() {
   const { s } = useI18n();
+  const items = Array.from({ length: TICKER_REPEATS }, () => s.ticker.items).flat();
 
   return (
     <section className="ticker" aria-label={s.ticker.label}>
@@ -27,13 +30,13 @@ export function Ticker() {
       <div className="ticker-viewport">
         <div className="ticker-track">
           <ul className="ticker-list">
-            {s.ticker.items.map((item) => (
-              <li key={item}>{item}</li>
+            {items.map((item, index) => (
+              <li key={`${item}-${index}`}>{item}</li>
             ))}
           </ul>
           <ul className="ticker-list" aria-hidden="true">
-            {s.ticker.items.map((item) => (
-              <li key={`${item}-copy`}>{item}</li>
+            {items.map((item, index) => (
+              <li key={`${item}-copy-${index}`}>{item}</li>
             ))}
           </ul>
         </div>
