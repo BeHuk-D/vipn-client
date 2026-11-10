@@ -48,6 +48,25 @@ namespace
     {
         return QStringLiteral("https://github.com/%1/releases/latest").arg(QString::fromLatin1(CLIENT_UPDATE_GITHUB_REPO));
     }
+
+    QStringList siteOrigins()
+    {
+        return {
+            QStringLiteral("https://vipn-connect.space"),
+            QStringLiteral("https://mirror.vipn-connect.space"),
+            QStringLiteral("https://vipn-web.vipn-net.workers.dev"),
+            QStringLiteral("https://www.vipn-connect.space"),
+        };
+    }
+
+    QString downloadsPageUrl(const QUrl &manifestUrl)
+    {
+        QUrl page = manifestUrl;
+        page.setPath(QStringLiteral("/downloads/"));
+        page.setQuery(QString());
+        page.setFragment(QString());
+        return page.toString();
+    }
 }
 
 UpdateController::UpdateController(QObject *parent)
@@ -99,17 +118,83 @@ void UpdateController::checkForUpdates()
         return;
     }
 
-    if (QString::fromLatin1(CLIENT_UPDATE_GITHUB_REPO).isEmpty()) {
-        logger.error() << "Update repository is not configured";
-        emit updateCheckFailed();
+    m_siteManifests.clear();
+    for (const QString &origin : siteOrigins()) {
+        m_siteManifests.append(origin + QStringLiteral("/downloads/releases.json"));
+    }
+    m_siteManifestIndex = 0;
+
+    checkSiteUpdates();
+}
+
+void UpdateController::checkSiteUpdates()
+{
+    if (m_siteManifestIndex >= m_siteManifests.size()) {
+        logger.info() << "No site mirror responded, falling back to GitHub";
+        checkGitHubUpdates();
         return;
     }
 
-    checkGitHubUpdates();
+    setUpdateCheckRunning(true);
+
+    const QUrl manifestUrl(m_siteManifests.at(m_siteManifestIndex));
+    QNetworkRequest request(manifestUrl);
+    request.setTransferTimeout(6000);
+    request.setRawHeader("Accept", "application/json");
+    request.setRawHeader("User-Agent", APPLICATION_NAME);
+
+    QNetworkReply *reply = amnApp->networkManager()->get(request);
+
+    connect(reply, &QNetworkReply::finished, this, [this, reply, manifestUrl]() {
+        reply->deleteLater();
+
+        if (reply->error() != QNetworkReply::NoError) {
+            logger.warning() << "Release manifest request failed:" << manifestUrl.toString()
+                             << static_cast<int>(reply->error()) << reply->errorString();
+            ++m_siteManifestIndex;
+            checkSiteUpdates();
+            return;
+        }
+
+        const QJsonObject manifest = QJsonDocument::fromJson(reply->readAll()).object();
+        const QString version = manifest.value(QStringLiteral("version")).toString().isEmpty()
+                ? manifest.value(QStringLiteral("tag")).toString()
+                : manifest.value(QStringLiteral("version")).toString();
+        const QString normalized = version.startsWith(QLatin1Char('v')) ? version.mid(1) : version;
+        if (normalized.isEmpty()) {
+            logger.warning() << "Release manifest has no version:" << manifestUrl.toString();
+            ++m_siteManifestIndex;
+            checkSiteUpdates();
+            return;
+        }
+
+        setUpdateCheckRunning(false);
+
+        if (!isNewerVersion(normalized, QStringLiteral(APP_VERSION))) {
+            logger.info() << "No application update available, latest release is" << normalized;
+            emit updateNotFound();
+            return;
+        }
+
+        m_version = normalized;
+        m_releaseDate = manifest.value(QStringLiteral("published_at")).toString().left(10);
+        m_description.clear();
+        m_releasePageUrl = downloadsPageUrl(manifestUrl);
+
+        logger.info() << "Application update available:" << normalized;
+        emit updateFound();
+    });
 }
 
 void UpdateController::checkGitHubUpdates()
 {
+    if (QString::fromLatin1(CLIENT_UPDATE_GITHUB_REPO).isEmpty()) {
+        logger.error() << "Update repository is not configured";
+        setUpdateCheckRunning(false);
+        emit updateCheckFailed();
+        return;
+    }
+
     setUpdateCheckRunning(true);
 
     const QString repo = QString::fromLatin1(CLIENT_UPDATE_GITHUB_REPO);

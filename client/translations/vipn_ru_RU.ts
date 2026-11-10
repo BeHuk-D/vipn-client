@@ -6243,13 +6243,13 @@ Create one from the current settings.</source>
     </message>
     <message>
         <location filename="../ui/qml/Pages2/PageUpdate.qml" line="106"/>
-        <source>Download the new version from the releases page</source>
-        <translation>Скачайте новую версию на странице релизов</translation>
+        <source>Download the new version from the download page</source>
+        <translation>Скачайте новую версию на странице загрузок</translation>
     </message>
     <message>
         <location filename="../ui/qml/Pages2/PageUpdate.qml" line="124"/>
-        <source>Open GitHub</source>
-        <translation>Открыть GitHub</translation>
+        <source>Open download page</source>
+        <translation>Открыть страницу загрузок</translation>
     </message>
 </context>
 <context>

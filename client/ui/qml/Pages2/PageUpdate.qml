@@ -103,7 +103,7 @@ PageType {
                 SmallTextType {
                     Layout.fillWidth: true
 
-                    text: qsTr("Download the new version from the releases page")
+                    text: qsTr("Download the new version from the download page")
                 }
             }
         }
@@ -121,7 +121,7 @@ PageType {
         ButtonType {
             Layout.fillWidth: true
 
-            text: qsTr("Open GitHub")
+            text: qsTr("Open download page")
 
             onClicked: UpdateController.openReleasePage()
         }

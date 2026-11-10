@@ -2,6 +2,7 @@
 #define UPDATECONTROLLER_H
 
 #include <QObject>
+#include <QStringList>
 
 class UpdateController : public QObject
 {
@@ -27,12 +28,16 @@ signals:
 
 private:
     void setUpdateCheckRunning(bool running);
+    void checkSiteUpdates();
     void checkGitHubUpdates();
 
     QString m_version;
     QString m_releaseDate;
     QString m_description;
     QString m_releasePageUrl;
+
+    QStringList m_siteManifests;
+    int m_siteManifestIndex = 0;
 
     bool m_updateCheckRunning = false;
 };

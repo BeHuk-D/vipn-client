@@ -13,7 +13,7 @@
 - Настройки соединения: DNS и KillSwitch.
 - Раздельное туннелирование по сайтам и IP (Linux, Windows, macOS) и по приложениям
   (Windows, режим исключения).
-- Проверка новых версий по GitHub Releases и переход на страницу релизов.
+- Проверка новых версий через сайт и его зеркала с откатом на GitHub Releases.
 
 Поддерживаемые платформы сборки: Linux, Windows, Android и macOS. iOS в сборке отсутствует.
 
@@ -73,11 +73,15 @@ git push origin v1.2.0
 ```
 
 Workflow `.github/workflows/release.yml` собирает Linux и Windows сборки с этой
-версией и прикладывает установщики к GitHub Release. Клиент при запуске
-запрашивает `https://api.github.com/repos/BeHuk-D/vipn-client/releases/latest`,
-сравнивает версию с собственной и, если доступна новая, открывает экран обновления
-со ссылкой на страницу релизов. Скачивание и установка выполняются вручную —
-кнопка «Открыть GitHub» открывает страницу релизов в браузере.
+версией и прикладывает установщики к GitHub Release. Панель синхронизирует
+последние релизы и публикует манифест `/downloads/releases.json`. Клиент при
+запуске сначала запрашивает манифест с сайта, перебирая зеркала
+(`vipn-connect.space`, `mirror.vipn-connect.space`,
+`vipn-web.vipn-net.workers.dev`, `www.vipn-connect.space`). Если ответил хотя бы
+один из них, версия сравнивается с собственной, а кнопка на экране обновления
+открывает страницу загрузок этого хоста. Если сайт и зеркала недоступны, клиент
+падает обратно на `https://api.github.com/repos/BeHuk-D/vipn-client/releases/latest`
+и открывает страницу релиза на GitHub. Скачивание и установка выполняются вручную.
 
 Репозиторий обновлений задаётся в `client/cmake/branding/common.cmake`
 (`CLIENT_UPDATE_GITHUB_REPO`), включение автообновления — `CLIENT_ENABLE_APP_UPDATES`.
