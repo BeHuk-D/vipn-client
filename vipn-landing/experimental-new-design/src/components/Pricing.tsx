@@ -52,25 +52,6 @@ export function Pricing() {
             );
           })}
         </div>
-
-        <div className="pricing-foot" data-reveal>
-          <ul className="assurances">
-            {s.pricing.assurances.map((item) => (
-              <li key={item}>
-                <Icon name="check" />
-                {item}
-              </li>
-            ))}
-          </ul>
-          <p className="plan-note">
-            {s.pricing.note}{" "}
-            <a href={TELEGRAM_URL} target="_blank" rel="noreferrer">
-              @BeHukD
-            </a>
-            {s.pricing.noteTail}{" "}
-            <a href="/downloads/">{s.pricing.noteDownload} →</a>
-          </p>
-        </div>
       </div>
     </section>
   );

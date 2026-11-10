@@ -50,10 +50,6 @@ export type Strings = {
     lede: string;
     badge: string;
     plans: Plan[];
-    note: string;
-    noteTail: string;
-    noteDownload: string;
-    assurances: string[];
   };
   download: {
     eyebrow: string;
@@ -175,7 +171,7 @@ export const strings: Record<Lang, Strings> = {
       items: [
         {
           title: "Оформите подписку",
-          text: "Напишите нам в Telegram — выдадим ссылку-подписку за пару минут.",
+          text: "Оплатите любым удобным способом.",
         },
         {
           title: "Установите приложение",
@@ -216,10 +212,6 @@ export const strings: Record<Lang, Strings> = {
           features: [unlimitedRu, "4 устройства одновременно", "Все локации"],
         },
       ],
-      note: "Онлайн-оплата пока не подключена. Напишите в Telegram",
-      noteTail: " — оформим подписку и учтём бонусный баланс.",
-      noteDownload: "Скачать приложение",
-      assurances: ["Оплата в Telegram", "Без автопродления", "Бонусный баланс"],
     },
     download: {
       eyebrow: "Клиенты",
@@ -366,7 +358,7 @@ export const strings: Record<Lang, Strings> = {
       items: [
         {
           title: "Get a subscription",
-          text: "Message us on Telegram and we will send your subscription link within minutes.",
+          text: "Pay in any way that suits you.",
         },
         {
           title: "Install the app",
@@ -407,10 +399,6 @@ export const strings: Record<Lang, Strings> = {
           features: [unlimitedEn, "4 devices at once", "All locations"],
         },
       ],
-      note: "Online checkout is not connected yet. Message us on Telegram",
-      noteTail: " — we issue the subscription and apply your bonus balance.",
-      noteDownload: "Download the app",
-      assurances: ["Pay via Telegram", "No auto-renewal", "Bonus balance"],
     },
     download: {
       eyebrow: "Clients",
