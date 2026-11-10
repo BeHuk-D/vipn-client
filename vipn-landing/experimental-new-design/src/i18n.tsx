@@ -28,14 +28,6 @@ export type Strings = {
   mock: {
     secure: string;
   };
-  ping: {
-    label: string;
-    unit: string;
-    measure: string;
-    measuring: string;
-    again: string;
-    error: string;
-  };
   ticker: { label: string; items: string[] };
   stats: { items: { value: string; label: string; sub: string }[] };
   features: {
@@ -122,14 +114,6 @@ export const strings: Record<Lang, Strings> = {
     },
     mock: {
       secure: "Трафик зашифрован",
-    },
-    ping: {
-      label: "Пинг до Германии",
-      unit: "мс",
-      measure: "Проверить",
-      measuring: "Проверяем…",
-      again: "Обновить",
-      error: "Нет ответа",
     },
     ticker: {
       label: "Снова работает",
@@ -321,14 +305,6 @@ export const strings: Record<Lang, Strings> = {
     },
     mock: {
       secure: "Traffic encrypted",
-    },
-    ping: {
-      label: "Ping to Germany",
-      unit: "ms",
-      measure: "Check",
-      measuring: "Measuring…",
-      again: "Refresh",
-      error: "No response",
     },
     ticker: {
       label: "Working again",

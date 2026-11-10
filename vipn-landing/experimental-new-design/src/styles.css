@@ -786,98 +786,6 @@ section[id] {
   box-shadow: var(--shadow);
 }
 
-.chip-ping {
-  left: 0;
-  bottom: 16px;
-  width: 190px;
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.chip-label {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  color: var(--muted);
-  font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.chip-label .live-dot {
-  width: 5px;
-  height: 5px;
-}
-
-.chip-value {
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
-  font-family: var(--font-display);
-  font-size: 33px;
-  font-weight: 500;
-  line-height: 1;
-  letter-spacing: -0.05em;
-  font-variant-numeric: tabular-nums;
-}
-
-.chip-value em {
-  color: var(--muted);
-  font-family: var(--font-body);
-  font-size: 10px;
-  font-style: normal;
-  font-weight: 400;
-  letter-spacing: 0;
-}
-
-.chip-error {
-  color: var(--muted);
-  font-family: var(--font-mono);
-  font-size: 8px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.chip-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  width: fit-content;
-  margin-top: 6px;
-  padding: 0 0 2px;
-  border: 0;
-  border-bottom: 1px solid var(--line-strong);
-  background: transparent;
-  color: var(--fg);
-  font-family: var(--font-mono);
-  font-size: 8.5px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition:
-    color 0.2s ease,
-    border-color 0.2s ease;
-}
-
-.chip-btn:hover {
-  border-color: var(--fg);
-}
-
-.chip-btn:disabled {
-  color: var(--muted);
-  cursor: progress;
-}
-
-.chip-btn .icon {
-  width: 10px;
-  height: 10px;
-}
-
 .chip-secure {
   top: 102px;
   right: 0;
@@ -2577,18 +2485,11 @@ section[id] {
   }
 }
 
-.is-spinning {
-  animation: spin 1s linear infinite;
-}
-
 @media (max-width: 1100px) {
   .stage {
     min-height: 580px;
   }
 
-  .chip-ping {
-    bottom: 6px;
-  }
 
   .hero-lede {
     max-width: 42ch;
@@ -2841,13 +2742,6 @@ section[id] {
     width: clamp(238px, 70vw, 276px);
   }
 
-  .chip-ping {
-    left: 50%;
-    bottom: 0;
-    width: min(290px, 88vw);
-    transform: translateX(-50%);
-    padding: 13px 16px;
-  }
 
   .chip-secure {
     top: 18px;
@@ -2988,9 +2882,6 @@ section[id] {
     width: clamp(224px, 68vw, 252px);
   }
 
-  .chip-ping {
-    width: min(270px, 92vw);
-  }
 
   .chip-secure {
     display: none;
