@@ -10,7 +10,7 @@ export function PhoneMockup() {
       <div className="orbit orbit-a" aria-hidden="true" />
       <div className="orbit orbit-b" aria-hidden="true" />
       <span className="stage-tag" aria-hidden="true">
-        DE · NL
+        VPN
       </span>
 
       <div className="phone" aria-hidden="true">

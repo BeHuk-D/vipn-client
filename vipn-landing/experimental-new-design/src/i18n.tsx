@@ -81,7 +81,7 @@ export type Strings = {
     pending: string;
     osNotes: { Linux: string; Windows: string; Android: string };
   };
-  footer: { tagline: string; note: string; rights: string; documents: string; locations: string };
+  footer: { tagline: string; note: string; rights: string; documents: string; domain: string };
 };
 
 const unlimitedRu = "Безлимитный трафик";
@@ -107,7 +107,7 @@ export const strings: Record<Lang, Strings> = {
     },
     header: { menu: "Меню", close: "Закрыть" },
     hero: {
-      eyebrow: "VPN · Германия · Нидерланды",
+      eyebrow: "VPN без границ",
       title: ["VPN,", "которого", "не видно."],
       lede: "YouTube, Instagram, Telegram и любимые сериалы снова работают — без тормозов и «недоступно в вашем регионе». Одна подписка на все устройства, подключение за минуту.",
       note: "Без аккаунта и логов. Установка — минута.",
@@ -132,7 +132,7 @@ export const strings: Record<Lang, Strings> = {
     },
     stats: {
       items: [
-        { value: "2", label: "локации", sub: "Германия и Нидерланды" },
+        { value: "24/7", label: "поддержка", sub: "Отвечаем в Telegram" },
         { value: "∞", label: "трафик", sub: "Без лимитов и замедлений" },
         { value: "4", label: "устройства", sub: "Телефон, ноутбук, планшет" },
         { value: "<1", label: "минута", sub: "От оплаты до соединения" },
@@ -276,7 +276,7 @@ export const strings: Record<Lang, Strings> = {
       note: "Мы не храним историю посещений и не передаём данные третьим лицам.",
       rights: "© 2026 ViPN",
       documents: "Документы",
-      locations: "Германия · Нидерланды",
+      domain: "vipn-connect.space",
     },
   },
   en: {
@@ -298,7 +298,7 @@ export const strings: Record<Lang, Strings> = {
     },
     header: { menu: "Menu", close: "Close" },
     hero: {
-      eyebrow: "VPN · Germany · Netherlands",
+      eyebrow: "VPN without borders",
       title: ["A VPN", "that doesn't", "look like one."],
       lede: "YouTube, Instagram, Telegram and your favourite shows work again — no slowdowns, no “not available in your region”. One subscription for every device, set up in a minute.",
       note: "No account, no logs. Setup takes a minute.",
@@ -323,7 +323,7 @@ export const strings: Record<Lang, Strings> = {
     },
     stats: {
       items: [
-        { value: "2", label: "locations", sub: "Germany and the Netherlands" },
+        { value: "24/7", label: "support", sub: "We reply on Telegram" },
         { value: "∞", label: "traffic", sub: "Unlimited, no throttling" },
         { value: "4", label: "devices", sub: "Phone, laptop, tablet" },
         { value: "<1", label: "minute", sub: "From payment to connection" },
@@ -467,7 +467,7 @@ export const strings: Record<Lang, Strings> = {
       note: "We don't keep browsing history and never share data with third parties.",
       rights: "© 2026 ViPN",
       documents: "Documents",
-      locations: "Germany · Netherlands",
+      domain: "vipn-connect.space",
     },
   },
 };

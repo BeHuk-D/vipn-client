@@ -56,7 +56,7 @@ export function Footer() {
 
         <div className="footer-bottom">
           <span>{s.footer.rights}</span>
-          <span>{s.footer.locations}</span>
+          <span>{s.footer.domain}</span>
         </div>
 
         <p className="footer-legal">
