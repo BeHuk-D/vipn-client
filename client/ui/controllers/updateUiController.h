@@ -24,9 +24,11 @@ public:
 
 public slots:
     void openReleasePage();
+    void openSite();
 
 signals:
     void updateFound();
+    void siteUnavailable();
 
 private:
     UpdateController* m_updateController;

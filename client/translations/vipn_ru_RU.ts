@@ -940,6 +940,14 @@ Already installed containers were found on the server. All installed containers 
         <translation>Настройки</translation>
     </message>
     <message>
+        <source>Website</source>
+        <translation>Сайт</translation>
+    </message>
+    <message>
+        <source>Website is unavailable</source>
+        <translation>Сайт недоступен</translation>
+    </message>
+    <message>
         <location filename="../ui/qml/Pages2/PageHome.qml" line="160"/>
         <source>Measuring…</source>
         <translation>Измеряем…</translation>

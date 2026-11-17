@@ -124,21 +124,42 @@ PageType {
 
         spacing: 0
 
-        RowLayout {
+        Item {
             Layout.fillWidth: true
-
-            spacing: 8
+            Layout.preferredHeight: 36
 
             BodyTextType {
-                Layout.fillWidth: true
+                anchors.left: parent.left
+                anchors.right: siteLink.left
+                anchors.rightMargin: 8
+                anchors.verticalCenter: parent.verticalCenter
 
                 text: qsTr("ViPN")
                 color: AmneziaStyle.color.textPrimary
                 font.pixelSize: 22
                 font.weight: 600
+
+                elide: Text.ElideRight
+            }
+
+            LinkButtonType {
+                id: siteLink
+
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.verticalCenter: parent.verticalCenter
+
+                height: 36
+                size: LinkButtonType.Medium
+                text: qsTr("Website")
+                rightImageSource: "qrc:/images/controls/external-link.svg"
+
+                onClicked: UpdateController.openSite()
             }
 
             IconButtonType {
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+
                 size: IconButtonType.Small
                 icon.source: "qrc:/images/controls/settings.svg"
                 Accessible.name: qsTr("Settings")
@@ -227,6 +248,14 @@ PageType {
             if (root.hasSubscription) {
                 Qt.callLater(root.measurePing)
             }
+        }
+    }
+
+    Connections {
+        target: UpdateController
+
+        function onSiteUnavailable() {
+            PageController.showNotificationMessage(qsTr("Website is unavailable"))
         }
     }
 }

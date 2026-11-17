@@ -8,6 +8,7 @@ UpdateUiController::UpdateUiController(UpdateController* updateController, QObje
 {
     if (m_updateController) {
         connect(m_updateController, &UpdateController::updateFound, this, &UpdateUiController::updateFound);
+        connect(m_updateController, &UpdateController::siteUnavailable, this, &UpdateUiController::siteUnavailable);
     }
 }
 
@@ -46,5 +47,12 @@ void UpdateUiController::openReleasePage()
 {
     if (m_updateController) {
         m_updateController->openReleasePage();
+    }
+}
+
+void UpdateUiController::openSite()
+{
+    if (m_updateController) {
+        m_updateController->openSite();
     }
 }

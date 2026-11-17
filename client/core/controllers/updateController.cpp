@@ -67,6 +67,8 @@ namespace
         page.setFragment(QString());
         return page.toString();
     }
+
+    constexpr int kSiteProbeTimeoutMs = 3500;
 }
 
 UpdateController::UpdateController(QObject *parent)
@@ -249,4 +251,90 @@ void UpdateController::openReleasePage()
         return;
     }
     QDesktopServices::openUrl(url);
+}
+
+void UpdateController::openSite()
+{
+    if (m_siteProbeRunning) {
+        return;
+    }
+
+    m_siteProbeRunning = true;
+    ++m_siteProbeId;
+    const quint64 probeId = m_siteProbeId;
+
+    m_siteOrigins = siteOrigins();
+    m_siteStates = QVector<SiteState>(m_siteOrigins.size(), SiteState::Pending);
+    m_siteReplies = QVector<QNetworkReply *>(m_siteOrigins.size(), nullptr);
+
+    for (int index = 0; index < m_siteOrigins.size(); ++index) {
+        QNetworkRequest request(QUrl(m_siteOrigins.at(index) + QStringLiteral("/")));
+        request.setTransferTimeout(kSiteProbeTimeoutMs);
+        request.setRawHeader("Accept", "text/html");
+        request.setRawHeader("User-Agent", APPLICATION_NAME);
+
+        QNetworkReply *reply = amnApp->networkManager()->get(request);
+        m_siteReplies[index] = reply;
+
+        connect(reply, &QNetworkReply::finished, this, [this, reply, probeId, index]() {
+            if (probeId != m_siteProbeId) {
+                reply->deleteLater();
+                return;
+            }
+
+            m_siteReplies[index] = nullptr;
+
+            const bool transportFailure = reply->error() != QNetworkReply::NoError;
+            const bool hasStatus = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).isValid();
+            m_siteStates[index] = (transportFailure && !hasStatus) ? SiteState::Dead : SiteState::Alive;
+
+            reply->deleteLater();
+            resolveSiteChoice();
+        });
+    }
+}
+
+void UpdateController::resolveSiteChoice()
+{
+    if (!m_siteProbeRunning) {
+        return;
+    }
+
+    int chosenIndex = -1;
+    for (int index = 0; index < m_siteStates.size(); ++index) {
+        const SiteState state = m_siteStates.at(index);
+        if (state == SiteState::Pending) {
+            return;
+        }
+        if (state == SiteState::Alive) {
+            chosenIndex = index;
+            break;
+        }
+    }
+
+    m_siteProbeRunning = false;
+    ++m_siteProbeId;
+
+    const QString chosenOrigin = chosenIndex >= 0 ? m_siteOrigins.at(chosenIndex) : QString();
+
+    for (QNetworkReply *reply : m_siteReplies) {
+        if (!reply) {
+            continue;
+        }
+        reply->disconnect(this);
+        reply->abort();
+        reply->deleteLater();
+    }
+    m_siteReplies.clear();
+    m_siteStates.clear();
+    m_siteOrigins.clear();
+
+    if (chosenIndex < 0) {
+        logger.warning() << "No site mirror responded";
+        emit siteUnavailable();
+        return;
+    }
+
+    logger.info() << "Opening site mirror" << chosenOrigin;
+    QDesktopServices::openUrl(QUrl(chosenOrigin + QStringLiteral("/")));
 }
