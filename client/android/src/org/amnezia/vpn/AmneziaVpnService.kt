@@ -231,7 +231,7 @@ open class AmneziaVpnService : VpnService() {
         }
         ServiceCompat.startForeground(
             this, NOTIFICATION_ID,
-            serviceNotification.buildNotification(serverName, vpnProto?.label, protocolState.value),
+            serviceNotification.buildNotification(serverName, protocolState.value),
             foregroundServiceTypeCompat
         )
         return START_REDELIVER_INTENT
@@ -368,7 +368,7 @@ open class AmneziaVpnService : VpnService() {
             protocolState.drop(1).collect { protocolState ->
                 Log.d(TAG, "Protocol state changed: $protocolState")
 
-                serviceNotification.updateNotification(serverName, vpnProto?.label, protocolState)
+                serviceNotification.updateNotification(serverName, protocolState)
 
                 clientMessengers.send {
                     ServiceEvent.STATUS_CHANGED.packToMessage {
@@ -433,7 +433,7 @@ open class AmneziaVpnService : VpnService() {
     @MainThread
     private fun enableNotification() {
         registerScreenStateBroadcastReceivers()
-        serviceNotification.updateNotification(serverName, vpnProto?.label, protocolState.value)
+        serviceNotification.updateNotification(serverName, protocolState.value)
         launchTrafficStatsUpdate()
     }
 

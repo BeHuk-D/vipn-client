@@ -59,14 +59,14 @@ class ServiceNotification(private val context: Context) {
         formatSpeedString(rxString, txString)
     }
 
-    fun buildNotification(serverName: String?, protocol: String?, state: ProtocolState): Notification {
+    fun buildNotification(serverName: String?, state: ProtocolState): Notification {
         val speedString = if (state == CONNECTED) zeroSpeed else null
 
         Log.v(TAG, "Build notification: $serverName, $state")
 
         return notificationBuilder
             .setSmallIcon(R.drawable.ic_vipn_round)
-            .setContentTitle((serverName ?: "ViPN") + (protocol?.let { " $it" } ?: ""))
+            .setContentTitle(serverName ?: "ViPN")
             .setContentText(context.getString(state))
             .setSubText(speedString)
             .setWhen(System.currentTimeMillis())
@@ -94,10 +94,10 @@ class ServiceNotification(private val context: Context) {
     }
 
     @SuppressLint("MissingPermission")
-    fun updateNotification(serverName: String?, protocol: String?, state: ProtocolState) {
+    fun updateNotification(serverName: String?, state: ProtocolState) {
         if (context.isNotificationPermissionGranted()) {
             Log.v(TAG, "Update notification: $serverName, $state")
-            notificationManager.notify(NOTIFICATION_ID, buildNotification(serverName, protocol, state))
+            notificationManager.notify(NOTIFICATION_ID, buildNotification(serverName, state))
         }
     }
 
